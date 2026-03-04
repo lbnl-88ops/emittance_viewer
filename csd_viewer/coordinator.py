@@ -15,7 +15,6 @@ from csd_viewer.gui import (
     Tools,
     FileListControls,
     PlotControls,
-    FittingControls,
     FileList,
     Plot,
     FileComparisonWindow,
@@ -73,8 +72,6 @@ class Coordinator:
                 self._plot = object
             case StatusPane():
                 self._status_pane = object
-            case FittingControls():
-                self._fitting_controls = object
             case Tools():
                 self._tools = object
             case _:
@@ -190,12 +187,6 @@ class Coordinator:
             self.refresh_file_lists()
             file = CSDFile(csd_file, file_size)
             rescaling_methods = []
-            if self._fitting_controls._use_no_fitting.get():
-                rescaling_methods.append(Rescale.NONE)
-            if self._fitting_controls._use_linear_fitting.get():
-                rescaling_methods.append(Rescale.LINEAR)
-            if self._fitting_controls._use_polynomial_fitting.get():
-                rescaling_methods.append(Rescale.POLYNOMIAL)
             self._plot.plot(file, rescaling_methods)
 
     def remove_from_plot(self, *_):

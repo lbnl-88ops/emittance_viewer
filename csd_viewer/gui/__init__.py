@@ -2,7 +2,6 @@ from .controls import (
     PlotControls,
     FileListControls,
     FileList,
-    FittingControls,
     Tools,
 )
 from .plot import Plot

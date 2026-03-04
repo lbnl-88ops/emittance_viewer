@@ -70,51 +70,6 @@ class PlotControls(tk.Frame):
             self.btRemoveFromPlot.config(state="disabled")
 
 
-class FittingControls(tk.Frame):
-    def __init__(self, owner, *args, **kwargs):
-        super().__init__(owner, *args, **kwargs)
-        self._owner = owner
-        self.pad = 3.0
-        self.big_button_size = 2
-        self._font = "TkDefaultFont"
-        self._subtitle_font = (self._font, 12)
-        self._use_polynomial_fitting = tk.BooleanVar(value=True)
-        self._use_linear_fitting = tk.BooleanVar(value=False)
-        self._use_no_fitting = tk.BooleanVar(value=False)
-        self.create_widgets()
-
-    def create_widgets(self):
-        tk.Label(
-            self, text="Fitting methods", font=self._subtitle_font, justify="center"
-        ).grid(row=0, column=0, sticky="nsew")
-        self.button_frame = tk.Frame(self)
-        self.button_frame.grid(row=1, column=0, sticky="ew")
-        ttk.Checkbutton(
-            self.button_frame,
-            text="Polynomial",
-            bootstyle="round-toggle",
-            onvalue=True,
-            offvalue=False,
-            variable=self._use_polynomial_fitting,
-        ).pack(side="left", padx=10)
-        ttk.Checkbutton(
-            self.button_frame,
-            text="Linear",
-            bootstyle="round-toggle",
-            onvalue=True,
-            offvalue=False,
-            variable=self._use_linear_fitting,
-        ).pack(side="left", padx=10)
-        ttk.Checkbutton(
-            self.button_frame,
-            text="None",
-            bootstyle="round-toggle",
-            onvalue=True,
-            offvalue=False,
-            variable=self._use_no_fitting,
-        ).pack(side="left", padx=10)
-
-
 class Tools(tk.Frame):
     def __init__(self, owner, *args, **kwargs):
         super().__init__(owner, *args, **kwargs)
