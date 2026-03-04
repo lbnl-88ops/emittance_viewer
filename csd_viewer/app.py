@@ -13,10 +13,8 @@ import subprocess
 
 import ttkbootstrap as ttk
 
-from ops.ecris.analysis.model.element import PERSISTANT_ELEMENTS, VARIABLE_ELEMENTS
 
 from .coordinator import Coordinator, FileListType
-from csd_viewer.gui.controls import ElementButtons
 from csd_viewer.files.csd_file import CSDFile, export_to_file
 from csd_viewer.files.configuration import (
     AppConfiguration,
@@ -43,7 +41,7 @@ from .gui import (
 from .gui.windows.vertical_scroll_frame import VerticalScrolledFrame
 
 
-__version__ = "1.3.0-beta.4"
+__version__ = "0.1.0"
 
 matplotlib.rc("font", size=14)
 applyPatch()
@@ -77,7 +75,6 @@ class CSDViewer(ttk.Window):
 
         self.title(f"CSD Viewer (v{__version__})")
         self.pad = 5.0
-        self.variable_elements = VARIABLE_ELEMENTS + self.configuration.custom_elements
         self.create_widgets()
         self.create_menu()
         self._info_visible = False
@@ -154,17 +151,9 @@ class CSDViewer(ttk.Window):
         self.file_list = FileList(self.file_list_pane)
         self.plotted_file_list = FileList(self.file_list_pane)
 
-        self.element_buttons = ElementButtons(
-            self.control_pane.interior,
-            self.plot,
-            PERSISTANT_ELEMENTS,
-            self.variable_elements,
-        )
         self.plot_controls = PlotControls(self.control_pane.interior)
         self.fitting_controls = FittingControls(self.control_pane.interior)
         self.tools = Tools(self.control_pane.interior)
-
-        self.plot.set_element_indicators(self.element_buttons.element_visibility)
 
         self.status_pane.pack()
         self.file_list_pane.pack()
@@ -179,7 +168,6 @@ class CSDViewer(ttk.Window):
         self.plot_controls.pack()
         self.fitting_controls.pack()
         self.tools.pack()
-        self.element_buttons.pack(fill="both", padx=10, pady=10)
         self.strToggleInfoText = ttk.StringVar(value=">>")
 
         self.coordinator = Coordinator(

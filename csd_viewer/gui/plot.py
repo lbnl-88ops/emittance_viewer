@@ -8,11 +8,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.widgets import Cursor
 from ..plotting.plot_csd import create_figure, plot_file, Rescale
 from csd_viewer.files import CSDFile
-from csd_viewer.plotting.element_indicators import (
-    ElementIndicator,
-    add_element_indicators,
-)
-from ops.ecris.analysis.model import Element
 
 
 class Plot(tk.Frame):
@@ -20,8 +15,6 @@ class Plot(tk.Frame):
         tk.Frame.__init__(self, owner, relief=tk.RAISED, *args, **kwargs)
         self._is_empty = True
         self._bg = None
-        self.element_indicators: List[ElementIndicator] = []
-        self.draw_element_lines = tk.BooleanVar(value=False)
         self.use_blitting = tk.BooleanVar(value=False)
         self._file_artists: Dict[str, List[Artist]] = {}
         self.create_widgets()
@@ -39,25 +32,6 @@ class Plot(tk.Frame):
         self.cursor = Cursor(
             self._figure.gca(), useblit=True, color="blue", linewidth=0.5
         )
-
-    def set_element_indicators(self, elements: Dict[Element, tk.BooleanVar]):
-        self.element_indicators = add_element_indicators(elements)
-
-        self._figure.gca().set_prop_cycle(None)
-
-    def add_element_indicator(
-        self, element: Element, visibility_boolean: tk.BooleanVar
-    ):
-        self.element_indicators.extend(
-            add_element_indicators({element: visibility_boolean})
-        )
-
-    def remove_element_indicator(self, element):
-        for indicator in self.element_indicators:
-            if indicator.element == element:
-                indicator._remove_artists()
-                self.element_indicators.remove(indicator)
-                break
 
     def remove_file(self, file: Path):
         self._remove_files([file])
@@ -118,16 +92,6 @@ class Plot(tk.Frame):
                 fig.draw_artist(artist)
 
         # Determine how many elements are visible
-        visible_elements = [
-            element for element in self.element_indicators if element.is_plotted
-        ]
-        y_min, y_max = ax.get_ylim()
-        delta_y_height = 0.1 * abs(y_max - y_min)
-        for i, element in enumerate(
-            reversed(sorted(visible_elements, key=lambda e: len(e._m_over_q_values)))
-        ):
-            y_value = delta_y_height * (i + 1) + y_min
-            element.draw(fig, y_value=y_value, lines=self.draw_element_lines.get())
         handles, labels = ax.get_legend_handles_labels()
         if handles and any(not l.startswith("_") for l in labels):
             ax.legend(handles, labels, fontsize=10)
