@@ -78,14 +78,6 @@ class CSDFile:
         return f"{self.raw_timestamp:.0f} ({self.formatted_datetime})"
 
 
-def get_files(path: Path) -> List[CSDFile]:
-    glob = "csd_" + "[0-9]" * 10
-    return [
-        CSDFile(p, file_size=os.path.getsize(p))
-        for p in reversed(sorted(Path(path).glob(glob)))
-    ]
-
-
 def export_to_file(file_stream, files: List[CSDFile]):
     data = None
     headers = []

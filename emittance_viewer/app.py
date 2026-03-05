@@ -1,4 +1,4 @@
-"""Main CSD Viewer App"""
+"""Main emittance Viewer App"""
 
 import logging
 from pathlib import Path
@@ -72,7 +72,7 @@ class EmittanceViewer(ttk.Window):
                 f"{self.configuration.window_width}x{self.configuration.window_height}"
             )
 
-        self.title(f"CSD Viewer (v{__version__})")
+        self.title(f"Emittance Viewer (v{__version__})")
         self.pad = 5.0
         self.create_widgets()
         self.create_menu()

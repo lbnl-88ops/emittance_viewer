@@ -22,7 +22,7 @@ from emittance_viewer.gui import (
 from emittance_viewer.gui.status_pane import StatusPane, FileMode
 from emittance_viewer.files.client import (
     list_files,
-    download_filepair,
+    download_file,
     clear_temp_files,
     API_URL,
     list_local_files,
@@ -173,7 +173,7 @@ class Coordinator:
         file = self._file_list.get_selected_file()
         if file is not None:
             if self.mode == FileMode.REMOTE:
-                csd_file = download_filepair(file)
+                csd_file = download_file(file)
             else:
                 csd_file = file
             file_size = os.path.getsize(csd_file)

@@ -11,7 +11,7 @@ TEMP_FOLDER = Path("./tmp/")
 
 
 def list_local_files(directory: Path) -> List[Path]:
-    return [f.resolve() for f in directory.glob("csd_*")]
+    return [f.resolve() for f in directory.glob("emittance_scan_*.h5")]
 
 
 def list_files() -> List[Path]:
@@ -30,18 +30,11 @@ def list_files() -> List[Path]:
     return []
 
 
-def download_filepair(filepath: Path):
-    csd_filename = str(filepath.name)
-    dsht_filename = csd_filename.replace("csd", "dsht")
-    download_file(dsht_filename)
-    return download_file(csd_filename)
-
-
-def download_file(filename: str) -> Path | None:
+def download_file(filename: Path) -> Path | None:
     """Download a file from the API and save it as a temporary file."""
     _log.info(f"Attempting to download {filename}")
     TEMP_FOLDER.mkdir(exist_ok=True)
-    response = requests.get(f"{API_URL}/download/{filename}")
+    response = requests.get(f"{API_URL}/download/{filename.name}")
     if response.status_code == 200:
         temp_file = TEMP_FOLDER / filename
         with open(temp_file, "wb") as f:

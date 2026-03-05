@@ -3,10 +3,9 @@ import tkinter as tk
 from typing import List
 import ttkbootstrap as ttk
 
-from emittance_viewer.files import CSDFile, get_files
 from emittance_viewer.gui.info_frame import FileInfoPane
 from emittance_viewer.files.client import list_files
-from ops.ecris.analysis.io.read_csd_file import _file_formatted_timestamp
+from ops.ecris.analysis.io.read_emittance_scan_file import _file_formatted_timestamp
 
 BLUE = "#5200FF"
 WHITE = "#FFFFFF"
@@ -44,7 +43,7 @@ class FileList(tk.Frame):
             if _file_formatted_timestamp(f) != "UNKNOWN"
         ]
         if not filenames:
-            self.stringvar.set(["No CSD files found"])
+            self.stringvar.set(["No files found"])
             self.file_listbox.configure(state=tk.DISABLED)
         else:
             self.stringvar.set(filenames)

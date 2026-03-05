@@ -1,1 +1,1 @@
-from .emittance_file import CSDFile, get_files
+from .emittance_file import CSDFile
