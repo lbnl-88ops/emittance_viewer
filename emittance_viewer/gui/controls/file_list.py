@@ -3,8 +3,6 @@ import tkinter as tk
 from typing import List
 import ttkbootstrap as ttk
 
-from emittance_viewer.gui.info_frame import FileInfoPane
-from emittance_viewer.files.client import list_files
 from ops.ecris.analysis.io.read_emittance_scan_file import _file_formatted_timestamp
 
 BLUE = "#5200FF"
