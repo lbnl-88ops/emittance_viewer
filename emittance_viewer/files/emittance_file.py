@@ -7,15 +7,15 @@ from typing import List
 import numpy as np
 from matplotlib.artist import Artist
 
-from ops.ecris.analysis.model import CSD
-from ops.ecris.analysis.io.read_csd_file import (
+from ops.ecris.analysis.model.emittance_scan import EmittanceScan
+from ops.ecris.analysis.io.read_emittance_scan_file import (
     _file_raw_timestamp,
-    read_csd_from_file_pair,
+    load_emittance_scan,
     _file_formatted_timestamp,
 )
 
 
-class CSDFile:
+class EmittanceScanFile:
     def __init__(self, path, file_size: float = 0):
         self.path = path
         self.filename = self.path.name
@@ -24,11 +24,11 @@ class CSDFile:
         self.valid: bool = file_size > 0
         self.timestamp = _file_formatted_timestamp(path)
         self.raw_timestamp = _file_raw_timestamp(path)
-        self._csd = None
+        self._emittance_scan = None
         self._artist = None
 
     def __eq__(self, value: object) -> bool:
-        if isinstance(value, CSDFile):
+        if isinstance(value, EmittanceScanFile):
             return value.filename == self.filename
         return False
 
@@ -52,22 +52,19 @@ class CSDFile:
         else:
             return "Invalid timestamp"
 
-    def unload_csd(self) -> None:
-        self._csd = None
+    def unload_emittance_scan(self) -> None:
+        self._emittance_scan = None
 
     @property
-    def csd(self) -> CSD | None:
+    def emittance_scan(self) -> EmittanceScan | None:
         if not self.valid:
             return None
         try:
-            if self._csd is None:
-                logging.info(f"Loading CSD data for file {self.filename}")
+            if self._emittance_scan is None:
+                logging.info(f"Loading emittance scan data for file {self.filename}")
                 self.valid = True
-                self._csd = read_csd_from_file_pair(self.path)
-            logging.info(
-                f"CSD data accessed: m_over_q exists {self._csd.m_over_q is not None}"
-            )
-            return self._csd
+                self._emittance_scan = load_emittance_scan(self.path)
+            return self._emittance_scan
         except BaseException as e:
             logging.info(f"File is invalid: {self.path}: {e}")
             self.valid = False
@@ -76,37 +73,3 @@ class CSDFile:
     @property
     def list_value(self) -> str:
         return f"{self.raw_timestamp:.0f} ({self.formatted_datetime})"
-
-
-def export_to_file(file_stream, files: List[CSDFile]):
-    data = None
-    headers = []
-    for file in files:
-        csd = file.csd
-        if csd is None:
-            raise ValueError(f"No CSD for file {file.filename}")
-        elif csd.m_over_q is None:
-            raise ValueError(f"No m_over_q calculated for file {file.filename}")
-        print(csd.m_over_q.shape, csd.data.shape)
-        if data is None:
-            data = np.concatenate((csd.m_over_q.reshape(-1, 1), csd.data), axis=1)
-        else:
-            data = np.concatenate((data, csd.m_over_q.reshape(-1, 1), csd.data), axis=1)
-        headers.append(
-            ",".join(
-                [
-                    f"{col_name}_{file.filename}"
-                    for col_name in [
-                        "m_over_q",
-                        "time",
-                        "dipole_current",
-                        "dipole_field",
-                        "beam_current",
-                    ]
-                ]
-            )
-        )
-    if data is not None:
-        np.savetxt(
-            file_stream, data, delimiter=",", header=",".join(headers), comments=""
-        )

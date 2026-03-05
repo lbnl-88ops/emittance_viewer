@@ -7,7 +7,7 @@ from matplotlib.artist import Artist
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.widgets import Cursor
 from ..plotting.plot_csd import create_figure, plot_file, Rescale
-from emittance_viewer.files import CSDFile
+from emittance_viewer.files import EmittanceScanFile
 
 
 class Plot(tk.Frame):
@@ -58,7 +58,7 @@ class Plot(tk.Frame):
     def clear_plot(self):
         self._remove_files(list(self._file_artists.keys()))
 
-    def plot(self, file: CSDFile, rescaling_methods: List[Rescale]):
+    def plot(self, file: EmittanceScanFile, rescaling_methods: List[Rescale]):
         debug(f"Plotting file {file.path}")
         artists = [
             a

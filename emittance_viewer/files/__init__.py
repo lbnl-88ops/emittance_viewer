@@ -1,1 +1,1 @@
-from .emittance_file import CSDFile
+from .emittance_file import EmittanceScanFile

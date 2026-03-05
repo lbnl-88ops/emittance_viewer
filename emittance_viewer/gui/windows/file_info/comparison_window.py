@@ -7,7 +7,7 @@ import numpy as np
 import ttkbootstrap as ttk
 
 from ops.ecris.drivers.venus_plc import VENUS_PLC_DATA_DEFINITIONS, GAS_NAMES
-from emittance_viewer.files import CSDFile
+from emittance_viewer.files import EmittanceScanFile
 from emittance_viewer.gui.windows.vertical_scroll_frame import VerticalScrolledFrame
 
 
@@ -18,7 +18,7 @@ class FileComparisonWindow(tk.Toplevel):
         self._subtitle_font = (self._font, 12)
         self.title("CSD File Comparison")
         self.protocol("WM_DELETE_WINDOW", self.on_close)
-        self.files: List[CSDFile] = []
+        self.files: List[EmittanceScanFile] = []
         self.geometry(owner.winfo_geometry())
         self.create_widgets()
 
@@ -35,12 +35,12 @@ class FileComparisonWindow(tk.Toplevel):
 
     def add_files(self, paths: List[Path]) -> None:
         info(f"Adding files {paths} to comparison window")
-        self.files.extend([CSDFile(p, 1) for p in paths])
+        self.files.extend([EmittanceScanFile(p, 1) for p in paths])
         self._render_data()
 
     def add_file(self, path: Path) -> None:
         info(f"Adding file {path} to comparison window")
-        self.files.append(CSDFile(path, 1))
+        self.files.append(EmittanceScanFile(path, 1))
         self._render_data()
 
     def _render_data(self) -> None:

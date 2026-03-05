@@ -15,7 +15,6 @@ import ttkbootstrap as ttk
 
 
 from .coordinator import Coordinator, FileListType
-from emittance_viewer.files.emittance_file import CSDFile, export_to_file
 from emittance_viewer.files.configuration import (
     AppConfiguration,
     create_configuration,
@@ -35,7 +34,6 @@ from .gui import (
     FileListControls,
     AppMenu,
     DiagnosticWindow,
-    FileInfoPane,
 )
 from .gui.windows.vertical_scroll_frame import VerticalScrolledFrame
 
@@ -180,27 +178,6 @@ class EmittanceViewer(ttk.Window):
         self.coordinator.attach(self.plotted_file_list, FileListType.PLOTTED)
         self.coordinator.attach(self.status_pane)
         self.coordinator.initialize()
-
-    def export_data(self):
-        # if len(self.plot.plotted_files()) > 1:
-        # messagebox.showerror('Error', 'Can only export a single file. Please remove all but one datafile from the plot.')
-        # return
-        if len(self.plot.plotted_files()) == 0:
-            messagebox.showerror("Error", "No plotted data to export.")
-            return
-        else:
-            export_file = filedialog.asksaveasfile(
-                title="Save exported data as",
-                defaultextension=".csv",
-                filetypes=(("CSV files", "*.csv"), ("All files", "*.*")),
-                initialdir=self.configuration.default_directory,
-            )
-            if export_file is not None:
-                try:
-                    export_to_file(export_file, self.plot.plotted_files())
-                    messagebox.showinfo("Success", "Export successful.")
-                except ValueError as e:
-                    messagebox.showerror("Error", f"Error exporting: {e}")
 
     def diagnostic_mode(self):
         self._diagnostic_window = DiagnosticWindow(self)

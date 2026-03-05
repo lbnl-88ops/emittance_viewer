@@ -9,7 +9,7 @@ import os
 import time
 from datetime import datetime
 
-from emittance_viewer.files.emittance_file import CSDFile
+from emittance_viewer.files.emittance_file import EmittanceScanFile
 from emittance_viewer.status_bar import update_status_bar
 from emittance_viewer.gui import (
     Tools,
@@ -28,7 +28,6 @@ from emittance_viewer.files.client import (
     list_local_files,
     TEMP_FOLDER,
 )
-from emittance_viewer.plotting.plot_csd import Rescale
 
 _log = getLogger(__name__)
 
@@ -185,7 +184,7 @@ class Coordinator:
                 return
             self.plotted_files.append(file)
             self.refresh_file_lists()
-            file = CSDFile(csd_file, file_size)
+            file = EmittanceScanFile(csd_file, file_size)
             rescaling_methods = []
             self._plot.plot(file, rescaling_methods)
 
