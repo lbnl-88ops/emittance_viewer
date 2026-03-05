@@ -5,8 +5,7 @@ from pathlib import Path
 
 from matplotlib.artist import Artist
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-from matplotlib.widgets import Cursor
-from ..plotting.plot_csd import create_figure, plot_file, Rescale
+from ..plotting.plot_emittance_scan import create_figure, plot_file
 from emittance_viewer.files import EmittanceScanFile
 
 
@@ -28,10 +27,6 @@ class Plot(tk.Frame):
         self.canvas.get_tk_widget().pack(fill="both", expand=True)
         self.toolbar = NavigationToolbar2Tk(self.canvas, self)
         self.toolbar.update()
-        # self.canvas.get_tk_widget().pack()
-        self.cursor = Cursor(
-            self._figure.gca(), useblit=True, color="blue", linewidth=0.5
-        )
 
     def remove_file(self, file: Path):
         self._remove_files([file])
@@ -58,26 +53,15 @@ class Plot(tk.Frame):
     def clear_plot(self):
         self._remove_files(list(self._file_artists.keys()))
 
-    def plot(self, file: EmittanceScanFile, rescaling_methods: List[Rescale]):
+    def plot(self, file: EmittanceScanFile):
         debug(f"Plotting file {file.path}")
-        artists = [
-            a
-            for a in [
-                plot_file(self._figure.gca(), file, method)
-                for method in rescaling_methods
-            ]
-            if a is not None
-        ]
-        if artists:
-            debug("Artist was returned")
-            self._file_artists[file.path.name] = artists
-            self.update()
+        plot_file(self._figure.gca(), file)
+        self.update()
 
     def autoscale(self):
         ax = self._figure.gca()
         ax.relim(visible_only=True)
         ax.autoscale()
-        ax.set_ybound(lower=0)
         self.update()
 
     def on_draw(self, event):
@@ -95,7 +79,6 @@ class Plot(tk.Frame):
         handles, labels = ax.get_legend_handles_labels()
         if handles and any(not l.startswith("_") for l in labels):
             ax.legend(handles, labels, fontsize=10)
-        ax.set_ybound(lower=0)
 
     def update(self, *_):
         if self._bg is None:

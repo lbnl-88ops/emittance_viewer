@@ -8,6 +8,11 @@ from matplotlib.artist import Artist
 from emittance_viewer.files import EmittanceScanFile
 from emittance_viewer.status_bar import update_status_bar
 
+from ops.ecris.analysis.emittance_scan.rms_emittance import (
+    RMSEmittance,
+    calculate_rms_emittance,
+)
+
 
 class Rescale(Enum):
     NONE = auto()
@@ -17,25 +22,53 @@ class Rescale(Enum):
 
 def create_figure() -> Figure:
     fig = Figure(tight_layout=True)
-    # fig = Figure()
     ax = fig.gca()
     ax.grid(alpha=0.5, ls="--")
     font_size = 10
     ax.tick_params(labelsize=font_size)
-    ax.set_xticks(range(1, 10))
-    ax.set_xlabel("M/Q", fontsize=font_size)
-    ax.set_ylabel(r"current [$\mu$A]", fontsize=font_size)
+    ax.set_xlabel(f"Position [mm]")
+    ax.set_ylabel(f"Divergence [mrad]")
+    # ax.colorbar(label="Current [nA]")
     ax.set_facecolor("white")
     return fig
 
 
-def plot_file(
-    ax, file: EmittanceScanFile, rescale_method=Rescale.NONE
-) -> Artist | None:
-    csd = file.emittance_scan
-    if csd is None:
+def plot_file(ax, file: EmittanceScanFile):
+    emittance_scan = file.emittance_scan
+
+    if emittance_scan is None:
         info(f"File object: {file.path} has no emittance scan.")
         return None
+
+    rms: RMSEmittance = calculate_rms_emittance(emittance_scan)
+
+    position = rms.x
+    divergence = rms.xp
+
+    I_plot = rms.data * 1e9  # unit nA
+    theta = np.linspace(0, 2 * np.pi, 100)
+    E_rms = rms.e_rms * 1e6  # convert to mm mrad
+    A = rms.alpha
+    B = rms.beta
+    x_e = np.sqrt(4 * E_rms * B) * np.cos(theta) + rms.x_mean * 1e3
+    x_prime_e = (
+        -np.sqrt(4 * E_rms / B) * (A * np.cos(theta) + np.sin(theta))
+        + rms.xp_mean * 1e3
+    )
+    m, n = I_plot.shape
+    binlength_position = (max(position) - min(position)) / n
+    binlength_divergence = (max(divergence) - min(divergence)) / m
+    xx, xxp = np.meshgrid(position, divergence)
+    ax.pcolormesh(xx, xxp, I_plot.T, cmap="inferno")
+    ax.plot(
+        x_e,
+        x_prime_e,
+        "r--",
+        label=r"$\epsilon_{rms}$ = " + f"{round(E_rms, 4)} [mm mrad]",
+    )
+    ax.plot(rms.x_mean * 1e3, rms.xp_mean * 1e3, "wx")
+    ax.set_xlim(rms.x[0], rms.x[-1])
+    ax.set_ylim(rms.xp[0], rms.xp[-1])
 
     return
 

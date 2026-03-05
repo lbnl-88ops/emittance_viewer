@@ -185,8 +185,7 @@ class Coordinator:
             self.plotted_files.append(file)
             self.refresh_file_lists()
             file = EmittanceScanFile(csd_file, file_size)
-            rescaling_methods = []
-            self._plot.plot(file, rescaling_methods)
+            self._plot.plot(file)
 
     def remove_from_plot(self, *_):
         file = self._plotted_file_list.get_selected_file()
