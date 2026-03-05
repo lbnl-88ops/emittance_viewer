@@ -3,7 +3,7 @@ from enum import Enum, auto
 import ttkbootstrap as ttk
 import tkinter as tk
 
-from csd_viewer.gui.controls.controls import FileListControls
+from emittance_viewer.gui.controls.controls import FileListControls
 
 _FONT = "TkDefaultFont"
 _MODE_FONT = (_FONT, 12, "bold")

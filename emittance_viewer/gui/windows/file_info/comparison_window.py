@@ -7,8 +7,8 @@ import numpy as np
 import ttkbootstrap as ttk
 
 from ops.ecris.drivers.venus_plc import VENUS_PLC_DATA_DEFINITIONS, GAS_NAMES
-from csd_viewer.files import CSDFile
-from csd_viewer.gui.windows.vertical_scroll_frame import VerticalScrolledFrame
+from emittance_viewer.files import CSDFile
+from emittance_viewer.gui.windows.vertical_scroll_frame import VerticalScrolledFrame
 
 
 class FileComparisonWindow(tk.Toplevel):

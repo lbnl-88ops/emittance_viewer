@@ -9,9 +9,9 @@ import os
 import time
 from datetime import datetime
 
-from csd_viewer.files.csd_file import CSDFile
-from csd_viewer.status_bar import update_status_bar
-from csd_viewer.gui import (
+from emittance_viewer.files.emittance_file import CSDFile
+from emittance_viewer.status_bar import update_status_bar
+from emittance_viewer.gui import (
     Tools,
     FileListControls,
     PlotControls,
@@ -19,8 +19,8 @@ from csd_viewer.gui import (
     Plot,
     FileComparisonWindow,
 )
-from csd_viewer.gui.status_pane import StatusPane, FileMode
-from csd_viewer.files.client import (
+from emittance_viewer.gui.status_pane import StatusPane, FileMode
+from emittance_viewer.files.client import (
     list_files,
     download_filepair,
     clear_temp_files,
@@ -28,7 +28,7 @@ from csd_viewer.files.client import (
     list_local_files,
     TEMP_FOLDER,
 )
-from csd_viewer.plotting.plot_csd import Rescale
+from emittance_viewer.plotting.plot_csd import Rescale
 
 _log = getLogger(__name__)
 

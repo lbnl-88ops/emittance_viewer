@@ -7,8 +7,8 @@ from matplotlib.figure import Figure
 from matplotlib.artist import Artist
 from ops.ecris.analysis.csd.polynomial_fit import polynomial_fit_mq, Element
 from ops.ecris.analysis.csd.m_over_q import estimate_m_over_q, scale_with_oxygen
-from csd_viewer.files import CSDFile
-from csd_viewer.status_bar import update_status_bar
+from emittance_viewer.files import CSDFile
+from emittance_viewer.status_bar import update_status_bar
 
 
 class Rescale(Enum):

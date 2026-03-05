@@ -7,7 +7,7 @@ from matplotlib.artist import Artist
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.widgets import Cursor
 from ..plotting.plot_csd import create_figure, plot_file, Rescale
-from csd_viewer.files import CSDFile
+from emittance_viewer.files import CSDFile
 
 
 class Plot(tk.Frame):

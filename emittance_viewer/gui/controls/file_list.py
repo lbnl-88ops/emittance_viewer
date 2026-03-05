@@ -3,9 +3,9 @@ import tkinter as tk
 from typing import List
 import ttkbootstrap as ttk
 
-from csd_viewer.files import CSDFile, get_files
-from csd_viewer.gui.info_frame import FileInfoPane
-from csd_viewer.files.client import list_files
+from emittance_viewer.files import CSDFile, get_files
+from emittance_viewer.gui.info_frame import FileInfoPane
+from emittance_viewer.files.client import list_files
 from ops.ecris.analysis.io.read_csd_file import _file_formatted_timestamp
 
 BLUE = "#5200FF"

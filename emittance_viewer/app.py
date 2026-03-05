@@ -15,17 +15,17 @@ import ttkbootstrap as ttk
 
 
 from .coordinator import Coordinator, FileListType
-from csd_viewer.files.csd_file import CSDFile, export_to_file
-from csd_viewer.files.configuration import (
+from emittance_viewer.files.emittance_file import CSDFile, export_to_file
+from emittance_viewer.files.configuration import (
     AppConfiguration,
     create_configuration,
     save_configuration,
     CONFIG_FILEPATH,
 )
-from csd_viewer.gui.style.patchMatplotlib import applyPatch
-from csd_viewer.files.client import clear_temp_files
-from csd_viewer.gui.status_pane import StatusPane
-from csd_viewer.status_bar import StatusBarSingleton
+from emittance_viewer.gui.style.patchMatplotlib import applyPatch
+from emittance_viewer.files.client import clear_temp_files
+from emittance_viewer.gui.status_pane import StatusPane
+from emittance_viewer.status_bar import StatusBarSingleton
 
 from .gui import (
     Tools,
@@ -53,7 +53,7 @@ logging.basicConfig(
 )
 
 
-class CSDViewer(ttk.Window):
+class EmittanceViewer(ttk.Window):
     def __init__(self, configuration: AppConfiguration | None):
         super().__init__()
         self.configuration = configuration

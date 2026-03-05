@@ -1,5 +1,5 @@
 [project]
-name = "csd-viewer"
+name = "emittance-viewer"
 version = "1.3.0-beta.3"
 description = ""
 authors = [
@@ -27,7 +27,7 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-csd_viewer = "app:csd_viewer"
+emittance_viewer = "app:emittance_viewer"
 
 [tool.poetry.group.windows-build]
 optional = true
