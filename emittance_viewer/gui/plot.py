@@ -42,10 +42,6 @@ class Plot(tk.Frame):
                 continue
             for a in artists:
                 a.remove()
-        if not self._file_artists:
-            if ax.get_legend() is not None:
-                ax.get_legend().remove()
-            ax.set_prop_cycle(None)
         self.update()
 
     def clear_plot(self):

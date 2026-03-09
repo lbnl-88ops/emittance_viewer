@@ -31,9 +31,8 @@ def create_figure(n_subplots: int = 0):
             layout = (2, 2)
         case _:
             raise RuntimeError(f"Unsupported n_subplots: {n_subplots}")
-    fig, axs = plt.subplots(layout[0], layout[1])
-    if not isinstance(axs, list):
-        axs = [axs]
+    fig, axs = plt.subplots(layout[0], layout[1], squeeze=False)
+    axs = list(axs.flatten())
     for ax in axs:
         ax.grid(alpha=0.5, ls="--")
         font_size = 10
@@ -81,6 +80,8 @@ def plot_file(ax, file: EmittanceScanFile):
     ax.plot(rms.x_mean * 1e3, rms.xp_mean * 1e3, "wx")
     ax.set_xlim(rms.x[0], rms.x[-1])
     ax.set_ylim(rms.xp[0], rms.xp[-1])
+    ax.set_title(file.formatted_datetime)
+    ax.legend()
 
     return
 
