@@ -51,6 +51,10 @@ class Coordinator:
         self._files_available = 0
         self._current_directory = default_directory
 
+    @property
+    def plotted_filepaths(self) -> List[Path]:
+        return [file.path for file in self.plotted_files]
+
     def attach_objects(self, objects: List[Any]) -> None:
         for o in objects:
             self.attach(o)
@@ -91,8 +95,7 @@ class Coordinator:
         )
         self._plot_controls.btClearPlot.config(command=self.clear_plot)
         self._plot_controls.btRemoveFromPlot.config(command=self.remove_from_plot)
-        self._plot_controls.btPlotCSD.config(command=self.plot_file)
-        self._plot_controls.btAutoScale.config(command=self._plot.autoscale)
+        self._plot_controls.btPlotScan.config(command=self.plot_file)
         self._status_pane.file_list_controls.btChangeMode.config(
             command=self.toggle_mode
         )
@@ -102,10 +105,10 @@ class Coordinator:
         self._comparison_window = FileComparisonWindow(self._root_window)
         if self.mode == FileMode.REMOTE:
             files_to_compare = [
-                Path(TEMP_FOLDER) / file.name for file in self.plotted_files
+                Path(TEMP_FOLDER) / file.name for file in self.plotted_filepaths
             ]
         else:
-            files_to_compare = self.plotted_files
+            files_to_compare = self.plotted_filepaths
         self._comparison_window.add_files(files_to_compare)
 
     def update_button_states(self, *_):
@@ -164,7 +167,7 @@ class Coordinator:
     def clear_plot(self, *_):
         self.plotted_files = []
         self.refresh_file_lists()
-        self._plot.clear_plot()
+        self._plot.plot([])
         clear_temp_files()
         update_status_bar("Plot cleared.")
 
@@ -172,26 +175,29 @@ class Coordinator:
         file = self._file_list.get_selected_file()
         if file is not None:
             if self.mode == FileMode.REMOTE:
-                csd_file = download_file(file)
+                emittance_file = download_file(file)
             else:
-                csd_file = file
-            file_size = os.path.getsize(csd_file)
+                emittance_file = file
+            file_size = os.path.getsize(emittance_file)
             if file_size < 1:
                 messagebox.showerror(
                     "File invalid",
                     "Invalid file: file size is 0. CSD may still be in progress.",
                 )
                 return
+            file = EmittanceScanFile(emittance_file, file_size)
             self.plotted_files.append(file)
+            self._plot.plot(self.plotted_files)
             self.refresh_file_lists()
-            file = EmittanceScanFile(csd_file, file_size)
-            self._plot.plot(file)
 
     def remove_from_plot(self, *_):
         file = self._plotted_file_list.get_selected_file()
         if file is not None:
-            self._plot.remove_file(file)
-            self.plotted_files.remove(file)
+            for plotted_file in self.plotted_files:
+                if plotted_file.path == file:
+                    self.plotted_files.remove(plotted_file)
+                    break
+            self._plot.plot(self.plotted_files)
             self.refresh_file_lists()
 
     def refresh_file_lists(self, *_):
@@ -217,11 +223,11 @@ class Coordinator:
                 )
         self._files_available = len(found_files)
         files = [
-            f for f in reversed(sorted(found_files)) if f not in self.plotted_files
+            f for f in reversed(sorted(found_files)) if f not in self.plotted_filepaths
         ]
         self._file_list.fill_list_box(files)
-        self._plotted_file_list.fill_list_box(self.plotted_files)
-        if self.plotted_files:
+        self._plotted_file_list.fill_list_box(self.plotted_filepaths)
+        if self.plotted_filepaths:
             self._tools.btOpenComparisonWindow.config(state=tk.ACTIVE)
         else:
             self._tools.btOpenComparisonWindow.config(state=tk.DISABLED)

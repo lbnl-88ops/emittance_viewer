@@ -41,19 +41,15 @@ class PlotControls(tk.Frame):
 
     def create_widgets(self):
         self.widgets = []
-        self.btPlotCSD = ttk.Button(self, text="Plot CSD", bootstyle="success")
-        self.btAutoScale = ttk.Button(
-            self, text="Reset Scale", bootstyle="success-outline"
-        )
+        self.btPlotScan = ttk.Button(self, text="Plot scan", bootstyle="success")
         self.btRemoveFromPlot = ttk.Button(
             self, text="Remove from plot", state="disabled", bootstyle="outline+danger"
         )
         self.btClearPlot = ttk.Button(self, text="Clear Plot", bootstyle="outline")
         for loc, widget in {
-            (0, 0): self.btPlotCSD,
-            (0, 1): self.btAutoScale,
-            (0, 2): self.btRemoveFromPlot,
-            (0, 3): self.btClearPlot,
+            (0, 0): self.btPlotScan,
+            (0, 1): self.btRemoveFromPlot,
+            (0, 2): self.btClearPlot,
         }.items():
             widget.grid(
                 row=loc[0], column=loc[1], padx=self.pad, pady=self.pad, sticky="nsew"
@@ -61,9 +57,9 @@ class PlotControls(tk.Frame):
 
     def activate_buttons(self, can_plot: bool = False, can_remove: bool = False):
         if can_plot:
-            self.btPlotCSD.config(state="normal")  # Enable Plot button
+            self.btPlotScan.config(state="normal")  # Enable Plot button
         else:
-            self.btPlotCSD.config(state="disabled")
+            self.btPlotScan.config(state="disabled")
         if can_remove:
             self.btRemoveFromPlot.config(state="normal")  # Enable Remove button
         else:

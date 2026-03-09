@@ -99,7 +99,6 @@ class EmittanceViewer(ttk.Window):
         save_configuration(self.configuration)
 
         clear_temp_files()
-        self.plot.destroy()
         self.destroy()
 
     def create_menu(self):

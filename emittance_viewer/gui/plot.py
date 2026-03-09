@@ -16,17 +16,15 @@ class Plot(tk.Frame):
         self._bg = None
         self.use_blitting = tk.BooleanVar(value=False)
         self._file_artists: Dict[str, List[Artist]] = {}
-        self.create_widgets()
+        self.create_widgets(n_plots=0)
 
-    def create_widgets(self):
-        self._figure = create_figure()
+    def create_widgets(self, n_plots: int):
+        self._figure, self._axs = create_figure(n_plots)
         self.canvas = FigureCanvasTkAgg(self._figure, master=self)
         self.canvas.mpl_connect("draw_event", self.on_draw)
         self.canvas.mpl_connect("resize_event", self.update)
         self.canvas.draw()
         self.canvas.get_tk_widget().pack(fill="both", expand=True)
-        self.toolbar = NavigationToolbar2Tk(self.canvas, self)
-        self.toolbar.update()
 
     def remove_file(self, file: Path):
         self._remove_files([file])
@@ -51,11 +49,13 @@ class Plot(tk.Frame):
         self.update()
 
     def clear_plot(self):
-        self._remove_files(list(self._file_artists.keys()))
+        self.canvas.get_tk_widget().destroy()
 
-    def plot(self, file: EmittanceScanFile):
-        debug(f"Plotting file {file.path}")
-        plot_file(self._figure.gca(), file)
+    def plot(self, files: List[EmittanceScanFile]):
+        self.clear_plot()
+        self.create_widgets(len(files))
+        for ax, file in zip(self._axs, files):
+            plot_file(ax, file)
         self.update()
 
     def autoscale(self):

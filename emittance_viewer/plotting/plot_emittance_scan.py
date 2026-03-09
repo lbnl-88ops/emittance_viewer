@@ -3,6 +3,7 @@ from enum import Enum, auto
 import numpy as np
 
 from logging import info
+import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.artist import Artist
 from emittance_viewer.files import EmittanceScanFile
@@ -20,17 +21,28 @@ class Rescale(Enum):
     POLYNOMIAL = auto()
 
 
-def create_figure() -> Figure:
-    fig = Figure(tight_layout=True)
-    ax = fig.gca()
-    ax.grid(alpha=0.5, ls="--")
-    font_size = 10
-    ax.tick_params(labelsize=font_size)
-    ax.set_xlabel(f"Position [mm]")
-    ax.set_ylabel(f"Divergence [mrad]")
-    # ax.colorbar(label="Current [nA]")
-    ax.set_facecolor("white")
-    return fig
+def create_figure(n_subplots: int = 0):
+    match n_subplots:
+        case 0 | 1:
+            layout = (1, 1)
+        case 2:
+            layout = (1, 2)
+        case 3 | 4:
+            layout = (2, 2)
+        case _:
+            raise RuntimeError(f"Unsupported n_subplots: {n_subplots}")
+    fig, axs = plt.subplots(layout[0], layout[1])
+    if not isinstance(axs, list):
+        axs = [axs]
+    for ax in axs:
+        ax.grid(alpha=0.5, ls="--")
+        font_size = 10
+        ax.tick_params(labelsize=font_size)
+        ax.set_xlabel(f"Position [mm]")
+        ax.set_ylabel(f"Divergence [mrad]")
+        # ax.colorbar(label="Current [nA]")
+        ax.set_facecolor("white")
+    return fig, axs
 
 
 def plot_file(ax, file: EmittanceScanFile):
