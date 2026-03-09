@@ -7,6 +7,7 @@ from tkinter import ttk as ttk_main
 from tkinter import messagebox
 from tkinter import filedialog
 import matplotlib
+import matplotlib.pyplot as plt
 import platform
 import os
 import subprocess
@@ -47,7 +48,7 @@ logger = logging.getLogger("ops")
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 
@@ -86,25 +87,24 @@ class EmittanceViewer(ttk.Window):
 
     def quit(self):
         # Save geometry
-        self.configuration.window_width = self.winfo_width()
-        self.configuration.window_height = self.winfo_height()
-        self.configuration.window_x = self.winfo_x()
-        self.configuration.window_y = self.winfo_y()
+        # self.configuration.window_width = self.winfo_width()
+        # self.configuration.window_height = self.winfo_height()
+        # self.configuration.window_x = self.winfo_x()
+        # self.configuration.window_y = self.winfo_y()
 
-        try:
-            self.configuration.sash_position = self.paned_window.sashpos(0)
-        except Exception as e:
-            logging.error(f"Error getting sash position: {e}")
+        # try:
+        #     self.configuration.sash_position = self.paned_window.sashpos(0)
+        # except Exception as e:
+        #     logging.error(f"Error getting sash position: {e}")
 
-        save_configuration(self.configuration)
+        # save_configuration(self.configuration)
 
-        clear_temp_files()
+        # clear_temp_files()
+        plt.close("all")
         self.destroy()
 
     def create_menu(self):
-        self.menu = AppMenu(
-            self, self.plot.use_blitting, self.coordinator.rescale_using_oxygen
-        )
+        self.menu = AppMenu(self)
         self.config(menu=self.menu)
 
     def create_widgets(self):

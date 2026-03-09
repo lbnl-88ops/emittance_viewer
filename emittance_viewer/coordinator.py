@@ -44,7 +44,6 @@ class Coordinator:
             objects = [objects]
         self._root_window = root_window
         self.attach_objects(objects)
-        self.rescale_using_oxygen = tk.BooleanVar(value=True)
         self.plotted_files = []
         self.mode = FileMode.LOCAL
         self._last_updated = "N/A"
@@ -112,7 +111,7 @@ class Coordinator:
         self._comparison_window.add_files(files_to_compare)
 
     def update_button_states(self, *_):
-        if self._file_list.file_listbox.curselection():
+        if self._file_list.file_listbox.curselection() and len(self.plotted_files) < 4:
             self._plot_controls.activate_buttons(True, False)  # Can plot
         elif self._plotted_file_list.file_listbox.curselection():
             self._plot_controls.activate_buttons(False, True)  # Can remove
@@ -172,6 +171,12 @@ class Coordinator:
         update_status_bar("Plot cleared.")
 
     def plot_file(self):
+        if len(self.plotted_files) == 4:
+            messagebox.showerror(
+                "Error",
+                "Only four emittance scans can be shown at one time, please remove a plot.",
+            )
+            return
         file = self._file_list.get_selected_file()
         if file is not None:
             if self.mode == FileMode.REMOTE:

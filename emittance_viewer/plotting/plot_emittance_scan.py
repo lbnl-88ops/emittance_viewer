@@ -1,24 +1,13 @@
-from enum import Enum, auto
-
 import numpy as np
 
 from logging import info
 import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
-from matplotlib.artist import Artist
 from emittance_viewer.files import EmittanceScanFile
-from emittance_viewer.status_bar import update_status_bar
 
 from ops.ecris.analysis.emittance_scan.rms_emittance import (
     RMSEmittance,
     calculate_rms_emittance,
 )
-
-
-class Rescale(Enum):
-    NONE = auto()
-    LINEAR = auto()
-    POLYNOMIAL = auto()
 
 
 def create_figure(n_subplots: int = 0):
