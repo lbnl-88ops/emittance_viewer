@@ -45,10 +45,10 @@ matplotlib.rc("font", size=14)
 applyPatch()
 
 logger = logging.getLogger("ops")
-logger.setLevel(logging.DEBUG)
+# logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 
