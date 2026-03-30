@@ -45,7 +45,7 @@ def plot_file(ax, file: EmittanceScanFile):
     position = rms.x
     divergence = rms.xp
 
-    I_plot = -rms.data * 1e9  # unit nA
+    I_plot = rms.data * 1e9  # unit nA
     theta = np.linspace(0, 2 * np.pi, 100)
     E_rms = rms.e_rms * 1e6  # convert to mm mrad
     A = rms.alpha
