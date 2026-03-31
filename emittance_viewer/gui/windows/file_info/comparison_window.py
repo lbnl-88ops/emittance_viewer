@@ -63,7 +63,7 @@ class FileComparisonWindow(tk.Toplevel):
                 column_id = str(file.raw_timestamp)
             self.tree_view.column(column_id, anchor=tk.E)
             self.tree_view.heading(column_id, text=file.formatted_datetime)
-        csds = [file.csd for file in self.files]
+        scans = [file.emittance_scan for file in self.files]
         for category, labels in labels_by_category.items():
             for label in labels:
 
@@ -78,7 +78,9 @@ class FileComparisonWindow(tk.Toplevel):
                     return value
 
                 units = f"({label.units})" if label.units != "nan" else ""
-                values = [get_value(csd.settings) for csd in csds if csd is not None]
+                values = [
+                    get_value(csd.extra_metadata) for csd in scans if csd is not None
+                ]
 
                 self.tree_view.insert(
                     category,

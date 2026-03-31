@@ -15,7 +15,7 @@ def list_local_files(directory: Path) -> List[Path]:
 
 
 def list_files() -> List[Path]:
-    url = f"{API_URL}/files"
+    url = f"{API_URL}/emittance_files"
     try:
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
@@ -36,7 +36,7 @@ def download_file(filename: Path) -> Path | None:
     TEMP_FOLDER.mkdir(exist_ok=True)
     response = requests.get(f"{API_URL}/download/{filename.name}")
     if response.status_code == 200:
-        temp_file = TEMP_FOLDER / filename
+        temp_file = TEMP_FOLDER / filename.name
         with open(temp_file, "wb") as f:
             f.write(response.content)
         return temp_file
