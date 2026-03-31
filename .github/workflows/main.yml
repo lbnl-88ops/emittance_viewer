@@ -27,5 +27,5 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          files: ./dist/csd_viewer.exe
+          files: ./dist/emittance_viewer.exe
           prerelease: ${{ github.ref_name == 'main' && 'false' || 'true'}}
