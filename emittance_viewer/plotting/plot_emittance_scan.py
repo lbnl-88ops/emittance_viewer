@@ -46,6 +46,7 @@ def plot_file(ax, file: EmittanceScanFile):
     divergence = rms.xp
 
     I_plot = rms.data * 1e9  # unit nA
+    total_I = np.sum(I_plot * 1e-3)
     theta = np.linspace(0, 2 * np.pi, 100)
     E_rms = rms.e_rms * 1e6  # convert to mm mrad
     A = rms.alpha
@@ -59,19 +60,38 @@ def plot_file(ax, file: EmittanceScanFile):
     binlength_position = (max(position) - min(position)) / n
     binlength_divergence = (max(divergence) - min(divergence)) / m
     xx, xxp = np.meshgrid(position, divergence)
-    cm = ax.pcolormesh(xx, xxp, I_plot.T, cmap="inferno")
+    cm = ax.pcolormesh(
+        xx,
+        xxp,
+        I_plot.T,
+        cmap="inferno",
+    )
     ax.plot(
         x_e,
         x_prime_e,
         "r--",
         label=r"$\epsilon_{rms}$ = " + f"{round(E_rms, 4)} [mm mrad]",
     )
+    props = dict(boxstyle="round", facecolor="white", alpha=1.0)
+    ax.text(
+        0.025,
+        0.025,
+        "\n".join(
+            [
+                r"$I_{\text{total}}$ = " + f"{round(total_I, 4)}" + r" [$\mu A$]",
+                r"$\epsilon_{rms}$ = " + f"{round(E_rms, 4)} [mm mrad]",
+            ]
+        ),
+        fontsize=10,
+        transform=ax.transAxes,
+        bbox=props,
+    )
     ax.plot(rms.x_mean * 1e3, rms.xp_mean * 1e3, "wx")
     plt.colorbar(cm, ax=ax, label="Current (nA)")
     ax.set_xlim(rms.x[0], rms.x[-1])
     ax.set_ylim(rms.xp[0], rms.xp[-1])
     ax.set_title(file.formatted_datetime)
-    ax.legend()
+    # ax.legend()
 
     return
 
