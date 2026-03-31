@@ -22,7 +22,7 @@ jobs:
           pip install poetry
           poetry install --with windows-build
       - name: Build executable
-        run: poetry run pyinstaller --noconsole --name csd_viewer --onefile app.py
+        run: poetry run pyinstaller --noconsole --name emittance_viewer --onefile app.py
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
