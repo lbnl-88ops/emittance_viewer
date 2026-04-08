@@ -16,7 +16,7 @@ dependencies = [
     "scipy (>=1.17.0,<2.0.0)",
     "appdirs (>=1.4.4,<2.0.0)",
     "ttkbootstrap (>=1.20.0,<2.0.0)",
-    "ops-ecris-analysis @ git+https://github.com/lbnl-88ops/ecris.analysis.git@v1.4.2",
+    "ops-ecris-analysis @ git+https://github.com/lbnl-88ops/ecris.analysis.git@v1.4.3",
     "ops-ecris @ git+https://github.com/lbnl-88ops/ecris.git@v1.0.0",
     "requests (>=2.32.5,<3.0.0)"
 ]

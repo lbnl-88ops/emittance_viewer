@@ -1,7 +1,3 @@
-from pathlib import Path
-
-import yaml
-
 from emittance_viewer import EmittanceViewer
 from emittance_viewer.files.configuration import load_configuration, AppConfiguration
 
