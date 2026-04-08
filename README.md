@@ -15,5 +15,5 @@ poetry install
 
 To run the viewer, you can then use
 ```
-poetry emittance_viewer
+poetry run emittance_viewer
 ```
