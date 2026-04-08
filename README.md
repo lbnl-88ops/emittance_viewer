@@ -1,6 +1,6 @@
-# CSD Viewer
+# Emittance Scan Viewer
 
-This is a python3-based Tkinter application for viewing ECRIS charge state distributions (CSDs).
+This is a python3-based Tkinter application for viewing ECRIS emittance scans.
 
 # Installation
 
@@ -8,16 +8,12 @@ This is a python3-based Tkinter application for viewing ECRIS charge state distr
 
 Install [poetry](https://python-poetry.org/docs/#installing-with-pipx), then:
 ```
-git clone https://github.com/lbnl-88ops/csd_viewer.git
-cd csd_viewer
+git clone https://github.com/lbnl-88ops/emittance_viewer.git
+cd emittance_viewer
 poetry install
 ```
 
 To run the viewer, you can then use
 ```
-poetry csd_viewer
+poetry emittance_viewer
 ```
-
-## Windows
-
-Download the [latest release.](https://github.com/lbnl-88ops/csd_viewer/releases/tag/v1.1.0)

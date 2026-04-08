@@ -51,10 +51,9 @@ def plot_file(ax, file: EmittanceScanFile):
     E_rms = rms.e_rms * 1e6  # convert to mm mrad
     A = rms.alpha
     B = rms.beta
-    x_e = np.sqrt(4 * E_rms * B) * np.cos(theta) + rms.x_mean * 1e3
+    x_e = np.sqrt(E_rms * B) * np.cos(theta) + rms.x_mean * 1e3
     x_prime_e = (
-        -np.sqrt(4 * E_rms / B) * (A * np.cos(theta) + np.sin(theta))
-        + rms.xp_mean * 1e3
+        -np.sqrt(E_rms / B) * (A * np.cos(theta) + np.sin(theta)) + rms.xp_mean * 1e3
     )
     m, n = I_plot.shape
     binlength_position = (max(position) - min(position)) / n
