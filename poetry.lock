@@ -874,7 +874,7 @@ resolved_reference = "7ee50387af3e98c3f7d3969f92d73e02f75a6b30"
 
 [[package]]
 name = "ops-ecris-analysis"
-version = "1.4.2"
+version = "1.4.3"
 description = "Analysis tools for various ECRIS projects."
 optional = false
 python-versions = ">=3.11"
@@ -897,7 +897,7 @@ scipy = "*"
 type = "git"
 url = "https://github.com/lbnl-88ops/ecris.analysis.git"
 reference = "v1.4.3"
-resolved_reference = "33826ce0d37a178b9e38b5ba281297fcebee8ab2"
+resolved_reference = "433713a7d70c31a9269e1892201916681960e8cf"
 
 [[package]]
 name = "packaging"
