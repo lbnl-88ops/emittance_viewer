@@ -33,6 +33,10 @@ class FileList(tk.Frame):
             return self.files[i]
 
     def fill_list_box(self, file_list: List[Path]):
+        # Capture current scroll position and selection
+        yview = self.file_listbox.yview()
+        selection = self.file_listbox.curselection()
+
         self.files = file_list
         self.file_listbox.delete(0, tk.END)
         filenames = [
@@ -46,3 +50,12 @@ class FileList(tk.Frame):
         else:
             self.stringvar.set(filenames)
             self.file_listbox.configure(state=tk.NORMAL)
+            
+            # Restore scroll position
+            if yview:
+                self.file_listbox.yview_moveto(yview[0])
+            
+            # Restore selection
+            for idx in selection:
+                if idx < len(filenames):
+                    self.file_listbox.selection_set(idx)
