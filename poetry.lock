@@ -896,8 +896,8 @@ scipy = "*"
 [package.source]
 type = "git"
 url = "https://github.com/lbnl-88ops/ecris.analysis.git"
-reference = "v1.4.3"
-resolved_reference = "433713a7d70c31a9269e1892201916681960e8cf"
+reference = "v1.4.4"
+resolved_reference = "2a841a4029d5c4c222db91e9b1272d37bc13fd7a"
 
 [[package]]
 name = "packaging"
@@ -1932,4 +1932,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<3.15"
-content-hash = "05f7a12923deadd03ebb78e267f11a05de7f5691198e9f8e4c136ac7cacfb8a5"
+content-hash = "7248a66918553b73d2687cc4206b4b1a9feef940470dbf0e3053c7acbeb89bf8"
