@@ -18,6 +18,7 @@ from emittance_viewer.gui import (
     FileList,
     Plot,
     FileComparisonWindow,
+    FileInfoPane,
 )
 from emittance_viewer.gui.status_pane import StatusPane, FileMode
 from emittance_viewer.files.client import (
@@ -76,6 +77,8 @@ class Coordinator:
                 self._status_pane = object
             case Tools():
                 self._tools = object
+            case FileInfoPane():
+                self._file_info_pane = object
             case _:
                 raise RuntimeError(f"Coordinator passed bad object {object}")
 
@@ -168,6 +171,7 @@ class Coordinator:
         self.refresh_file_lists()
         self._plot.plot([])
         clear_temp_files()
+        self._file_info_pane.add_file_info([])
         update_status_bar("Plot cleared.")
 
     def plot_file(self):
@@ -193,6 +197,7 @@ class Coordinator:
             file = EmittanceScanFile(emittance_file, file_size)
             self.plotted_files.append(file)
             self._plot.plot(self.plotted_files)
+            self._file_info_pane.add_file_info(self.plotted_files)
             self.refresh_file_lists()
 
     def remove_from_plot(self, *_):
@@ -203,6 +208,7 @@ class Coordinator:
                     self.plotted_files.remove(plotted_file)
                     break
             self._plot.plot(self.plotted_files)
+            self._file_info_pane.add_file_info(self.plotted_files)
             self.refresh_file_lists()
 
     def refresh_file_lists(self, *_):

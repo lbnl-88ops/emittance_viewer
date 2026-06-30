@@ -35,6 +35,7 @@ from .gui import (
     FileListControls,
     AppMenu,
     DiagnosticWindow,
+    FileInfoPane
 )
 from .gui.windows.vertical_scroll_frame import VerticalScrolledFrame
 
@@ -149,6 +150,7 @@ class EmittanceViewer(ttk.Window):
 
         self.plot_controls = PlotControls(self.control_pane.interior)
         self.tools = Tools(self.control_pane.interior)
+        self.file_info_pane = FileInfoPane(self.control_pane.interior)
 
         self.status_pane.pack()
         self.file_list_pane.pack()
@@ -162,6 +164,7 @@ class EmittanceViewer(ttk.Window):
         self.plotted_file_list.grid(row=1, column=1, sticky="n", padx=10, pady=(0, 10))
         self.plot_controls.pack()
         self.tools.pack()
+        self.file_info_pane.pack()
         self.strToggleInfoText = ttk.StringVar(value=">>")
 
         self.coordinator = Coordinator(
@@ -176,6 +179,7 @@ class EmittanceViewer(ttk.Window):
         self.coordinator.attach(self.file_list, FileListType.TO_PLOT)
         self.coordinator.attach(self.plotted_file_list, FileListType.PLOTTED)
         self.coordinator.attach(self.status_pane)
+        self.coordinator.attach(self.file_info_pane)
         self.coordinator.initialize()
 
     def diagnostic_mode(self):
