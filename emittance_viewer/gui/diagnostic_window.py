@@ -1,16 +1,20 @@
 from logging import Handler, getLogger, info
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QTextEdit
 from PyQt6.QtCore import Qt
+from emittance_viewer.gui.style.constants import COLOR_BG, FONT_SANS
+from emittance_viewer.gui.style.styles import LIST_STYLE
 
 class DiagnosticWindow(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle('Diagnostics Log')
         self.resize(600, 400)
+        self.setStyleSheet(f"background: {COLOR_BG}; font-family: {FONT_SANS};")
         self.layout = QVBoxLayout(self)
         
         self.log_text = QTextEdit()
         self.log_text.setReadOnly(True)
+        self.log_text.setStyleSheet(LIST_STYLE)
         self.layout.addWidget(self.log_text)
 
         class LogHandler(Handler):

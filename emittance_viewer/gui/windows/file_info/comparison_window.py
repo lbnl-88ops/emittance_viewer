@@ -6,17 +6,21 @@ from PyQt6.QtCore import Qt
 
 from ops.ecris.drivers.venus_plc import VENUS_PLC_DATA_DEFINITIONS, GAS_NAMES
 from emittance_viewer.files import EmittanceScanFile
+from emittance_viewer.gui.style.constants import COLOR_BG, FONT_SANS
+from emittance_viewer.gui.style.styles import LIST_STYLE
 
 class FileComparisonWindow(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("CSD File Comparison")
         self.resize(800, 600)
+        self.setStyleSheet(f"background: {COLOR_BG}; font-family: {FONT_SANS};")
         self.layout = QVBoxLayout(self)
         
         self.files: List[EmittanceScanFile] = []
         
         self.tree_view = QTreeWidget()
+        self.tree_view.setStyleSheet(LIST_STYLE)
         self.layout.addWidget(self.tree_view)
         
         self.show()

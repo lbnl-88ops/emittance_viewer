@@ -4,6 +4,8 @@ from PyQt6.QtCore import Qt
 import numpy as np
 
 from emittance_viewer.files.emittance_file import EmittanceScanFile
+from emittance_viewer.gui.style.constants import COLOR_ACTION, COLOR_BG, COLOR_GRID, COLOR_PLOT_BG, FONT_MONO, FONT_SANS
+from emittance_viewer.gui.style.styles import TITLE_LABEL_STYLE
 
 class FileInfoPane(QWidget):
     def __init__(self, parent=None):
@@ -13,7 +15,7 @@ class FileInfoPane(QWidget):
         
         self.title_label = QLabel("Scan information")
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.title_label.setStyleSheet("font-weight: bold; font-size: 14px;")
+        self.title_label.setStyleSheet(TITLE_LABEL_STYLE)
         self.layout.addWidget(self.title_label)
         
         self.info_table_container = QWidget()
@@ -60,30 +62,22 @@ class FileInfoPane(QWidget):
 
             # Container for each file's info (the "square")
             outer_frame = QFrame()
-            outer_frame.setFrameShape(QFrame.Shape.StyledPanel)
-            outer_frame.setLineWidth(1)
-            
-            if is_low_utilization:
-                outer_frame.setStyleSheet("""
-                    QFrame {
-                        background-color: #ffcccc; 
-                        border: none;
-                    }
-                    QLabel {
-                        color: black;
-                    }
-                """)
-            else:
-                outer_frame.setStyleSheet("QFrame { border: none; }")
+            # NOTE: QLabel is itself a QFrame subclass, so a bare "QFrame { ... }"
+            # selector here matches every label inside this frame too, giving
+            # each piece of text its own thin border. Scope the rule to this
+            # specific widget with an object name so only the outer square
+            # gets the border/background; children are left untouched.
+            outer_frame.setObjectName("fileInfoOuterFrame")
+            outer_frame.setStyleSheet(
+                f"QFrame#fileInfoOuterFrame {{ border: 1px solid {COLOR_GRID}; background: {COLOR_BG}; }}"
+            )
                 
             outer_layout = QVBoxLayout(outer_frame)
             
             # Title: Timestamp
             title_label = QLabel(file.formatted_datetime)
             title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            title_font = title_label.font()
-            title_font.setBold(True)
-            title_label.setFont(title_font)
+            title_label.setStyleSheet(f"font-family: {FONT_SANS}; font-weight: bold;")
             outer_layout.addWidget(title_label)
 
             content_widget = QWidget()
@@ -92,27 +86,44 @@ class FileInfoPane(QWidget):
             outer_layout.addWidget(content_widget)
 
             if mult is not None:
+                # Use FONT_MONO for data
+                val_style = f"font-family: {FONT_MONO};"
+                if is_low_utilization:
+                    # Highlight just the data part in orange
+                    val_style_highlighted = val_style + f" color: {COLOR_ACTION}; font-weight: bold;"
+                else:
+                    val_style_highlighted = val_style
+                
                 # Gain
                 gain_layout = QHBoxLayout()
-                gain_layout.addWidget(QLabel("Gain:"))
+                lbl_gain = QLabel("Gain:")
+                lbl_gain.setStyleSheet(f"font-family: {FONT_SANS};")
+                gain_layout.addWidget(lbl_gain)
                 gain_val = QLabel(f"10^{mult}")
                 gain_val.setAlignment(Qt.AlignmentFlag.AlignRight)
+                gain_val.setStyleSheet(val_style)
                 gain_layout.addWidget(gain_val)
                 content_layout.addLayout(gain_layout)
 
                 # Max Current
                 current_layout = QHBoxLayout()
-                current_layout.addWidget(QLabel("Max I:"))
+                lbl_max_i = QLabel("Max I:")
+                lbl_max_i.setStyleSheet(f"font-family: {FONT_SANS};")
+                current_layout.addWidget(lbl_max_i)
                 current_val = QLabel(f"{max_current:.2e} A")
                 current_val.setAlignment(Qt.AlignmentFlag.AlignRight)
+                current_val.setStyleSheet(val_style)
                 current_layout.addWidget(current_val)
                 content_layout.addLayout(current_layout)
 
                 # Utilization
                 util_layout = QHBoxLayout()
-                util_layout.addWidget(QLabel("Util:"))
+                lbl_util = QLabel("Util:")
+                lbl_util.setStyleSheet(f"font-family: {FONT_SANS};")
+                util_layout.addWidget(lbl_util)
                 util_val = QLabel(f"{utilization:.0f}%")
                 util_val.setAlignment(Qt.AlignmentFlag.AlignRight)
+                util_val.setStyleSheet(val_style_highlighted)
                 util_layout.addWidget(util_val)
                 content_layout.addLayout(util_layout)
 
@@ -120,7 +131,7 @@ class FileInfoPane(QWidget):
                     rec_text = f"Suggest: 10^{mult + 1} ({utilization * 10:.0f}%)"
                     rec_label = QLabel(rec_text)
                     rec_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                    rec_label.setStyleSheet("font-style: italic; color: darkred;")
+                    rec_label.setStyleSheet(f"font-family: {FONT_SANS}; font-weight: bold; color: {COLOR_ACTION};")
                     outer_layout.addWidget(rec_label)
             else:
                 no_data_label = QLabel("No data")

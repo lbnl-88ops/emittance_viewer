@@ -23,13 +23,11 @@ def create_figure(n_subplots: int = 0):
     fig, axs = plt.subplots(layout[0], layout[1], squeeze=False)
     axs = list(axs.flatten())
     for ax in axs:
-        ax.grid(alpha=0.5, ls="--")
         font_size = 10
         ax.tick_params(labelsize=font_size)
         ax.set_xlabel(f"Position [mm]")
         ax.set_ylabel(f"Divergence [mrad]")
         # ax.colorbar(label="Current [nA]")
-        ax.set_facecolor("white")
     return fig, axs
 
 
@@ -71,7 +69,8 @@ def plot_file(ax, file: EmittanceScanFile):
         "r--",
         label=r"$\epsilon_{rms}$ = " + f"{round(E_rms, 4)} [mm mrad]",
     )
-    props = dict(boxstyle="round", facecolor="white", alpha=1.0)
+    from emittance_viewer.gui.style.constants import COLOR_BG
+    props = dict(boxstyle="round", facecolor=COLOR_BG, alpha=1.0)
     ax.text(
         0.025,
         0.025,

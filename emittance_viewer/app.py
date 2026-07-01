@@ -37,6 +37,8 @@ from .gui import (
     DiagnosticWindow,
     FileInfoPane
 )
+from .gui.style.constants import COLOR_BG, COLOR_TEXT
+from .gui.style.styles import MENU_STYLE, TITLE_LABEL_STYLE, add_label
 
 __version__ = "0.1.0"
 
@@ -62,6 +64,7 @@ class EmittanceViewer(QMainWindow):
         if self.configuration.window_x is not None and self.configuration.window_y is not None:
             self.move(self.configuration.window_x, self.configuration.window_y)
 
+        self.setStyleSheet(f"background: {COLOR_BG}; color: {COLOR_TEXT};" + MENU_STYLE)
         self.create_widgets()
         self.create_menu()
         self.setMinimumSize(800, 600)
@@ -110,13 +113,13 @@ class EmittanceViewer(QMainWindow):
         self.file_list_grid = QHBoxLayout(self.file_list_container)
         
         self.available_files_layout = QVBoxLayout()
-        self.available_files_layout.addWidget(QLabel("Available Files", alignment=Qt.AlignmentFlag.AlignCenter))
+        add_label(self.available_files_layout, "Available Files", TITLE_LABEL_STYLE).setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.file_list = FileList()
         self.available_files_layout.addWidget(self.file_list)
         self.file_list_grid.addLayout(self.available_files_layout)
 
         self.plotted_files_layout = QVBoxLayout()
-        self.plotted_files_layout.addWidget(QLabel("Plotted Files", alignment=Qt.AlignmentFlag.AlignCenter))
+        add_label(self.plotted_files_layout, "Plotted Files", TITLE_LABEL_STYLE).setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.plotted_file_list = FileList()
         self.plotted_files_layout.addWidget(self.plotted_file_list)
         self.file_list_grid.addLayout(self.plotted_files_layout)

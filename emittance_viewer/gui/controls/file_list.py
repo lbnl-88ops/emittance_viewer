@@ -5,6 +5,8 @@ from PyQt6.QtCore import pyqtSignal
 
 from ops.ecris.analysis.io.read_emittance_scan_file import _file_formatted_timestamp
 
+from emittance_viewer.gui.style.styles import LIST_STYLE
+
 class FileList(QWidget):
     selectionChanged = pyqtSignal()
 
@@ -15,6 +17,7 @@ class FileList(QWidget):
 
         self.files: List[Path] = []
         self.file_listbox = QListWidget()
+        self.file_listbox.setStyleSheet(LIST_STYLE)
         self.file_listbox.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.file_listbox.itemSelectionChanged.connect(self.selectionChanged.emit)
         

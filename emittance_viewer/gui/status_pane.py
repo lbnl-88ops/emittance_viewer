@@ -3,6 +3,8 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PyQt6.QtCore import Qt
 
 from emittance_viewer.gui.controls.controls import FileListControls
+from emittance_viewer.gui.style.constants import COLOR_INFO, COLOR_MUTED, COLOR_CAUTION
+from emittance_viewer.gui.style.styles import MODE_INDICATOR_STYLE
 
 class FileMode(Enum):
     REMOTE = auto()
@@ -16,14 +18,14 @@ class StatusPane(QWidget):
         
         self.lblFileMode = QLabel()
         self.lblFileMode.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.lblFileMode.setStyleSheet("font-weight: bold; font-size: 16px;")
+        self.lblFileMode.setStyleSheet(MODE_INDICATOR_STYLE)
         
         self.lblStatus = QLabel()
         self.lblStatus.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         self.lblWarning = QLabel()
         self.lblWarning.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.lblWarning.setStyleSheet("color: red;")
+        self.lblWarning.setStyleSheet(f"color: {COLOR_CAUTION}; font-weight: bold;")
         
         self.file_list_controls = FileListControls()
         
@@ -36,7 +38,10 @@ class StatusPane(QWidget):
         match mode:
             case FileMode.REMOTE:
                 file_mode = "Remote"
+                color = COLOR_INFO
             case _:
                 file_mode = "Local"
+                color = COLOR_MUTED
         self.lblFileMode.setText(f"File mode: {file_mode}")
+        self.lblFileMode.setStyleSheet(MODE_INDICATOR_STYLE + f"background-color: {color};")
         self.lblStatus.setText(info)
