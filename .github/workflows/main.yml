@@ -4,6 +4,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      debug_build:
+        description: 'Build a --console Debug variant instead of the release --noconsole build (shows tracebacks in a console window; not for distribution).'
+        type: boolean
+        default: false
 jobs:
   windows_build:
     name: Windows Build
@@ -23,9 +28,22 @@ jobs:
           poetry install --with windows-build
       - name: Install NSIS
         run: choco install nsis --yes
-      - name: Build executable
-        run: poetry run pyinstaller --noconsole --name emittance_viewer --onedir app.py
+      - name: Build executable (Debug, --console)
+        if: ${{ github.event.inputs.debug_build == 'true' }}
+        run: |
+          $env:EMITTANCE_VIEWER_DEBUG = "1"
+          poetry run pyinstaller emittance_viewer.spec
+      - name: Build executable (Release, --noconsole)
+        if: ${{ github.event.inputs.debug_build != 'true' }}
+        run: poetry run pyinstaller emittance_viewer.spec
+      - name: Upload Debug build artifact
+        if: ${{ github.event.inputs.debug_build == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: emittance_viewer-debug-build
+          path: dist/emittance_viewer/
       - name: Build installer
+        if: ${{ github.event.inputs.debug_build != 'true' }}
         run: |
           # NSIS is usually in C:\Program Files (x86)\NSIS\
           $nsisPath = "C:\Program Files (x86)\NSIS\makensis.exe"
@@ -37,6 +55,7 @@ jobs:
           }
       - name: Create Release
         id: create_release
+        if: ${{ github.event.inputs.debug_build != 'true' }}
         uses: softprops/action-gh-release@v2
         with:
           files: ./Emittance_Viewer_Installer.exe

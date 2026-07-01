@@ -31,6 +31,10 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+# emittance_viewer.spec is hand-authored and checked in on purpose: it
+# pins down hidden imports / namespace-package collection needed for a
+# working Windows build (see comments in the file itself).
+!emittance_viewer.spec
 
 # Installer logs
 pip-log.txt

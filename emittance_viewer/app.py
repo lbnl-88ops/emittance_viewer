@@ -28,6 +28,7 @@ from emittance_viewer.files.configuration import (
 from emittance_viewer.gui.style.patchMatplotlib import applyPatch
 from emittance_viewer.gui.status_pane import StatusPane
 from emittance_viewer.status_bar import StatusBarSingleton
+from emittance_viewer.logging_setup import configure_logging
 
 from .gui import (
     Tools,
@@ -46,11 +47,14 @@ __version__ = "0.1.0"
 matplotlib.rc("font", size=14)
 applyPatch()
 
+# Idempotent: if the frozen root app.py already called this, this is a
+# no-op. This covers the `poetry run emittance_viewer` / console-script
+# entry point (emittance_viewer.app:emittance_viewer), which does not go
+# through the root app.py bootstrap and would otherwise have no file
+# logging at all.
+configure_logging()
+
 logger = logging.getLogger("ops")
-logger.addHandler(logging.StreamHandler())
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
 
 class EmittanceViewer(QMainWindow):
     def __init__(self, configuration: AppConfiguration | None):
