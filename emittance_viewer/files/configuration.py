@@ -2,7 +2,7 @@ from dataclasses import dataclass, field, asdict
 from logging import info
 from pathlib import Path
 from tomllib import load
-from tkinter import messagebox
+from PyQt6.QtWidgets import QMessageBox
 import tomllib
 from typing import List, Optional
 
@@ -66,8 +66,8 @@ def load_configuration() -> AppConfiguration | None:
                     sash_position=config.get("sash_position"),
                 )
         except tomllib.TOMLDecodeError:
-            messagebox.showerror(
-                "Error", "Error loading configuration, using default settings"
+            QMessageBox.critical(
+                None, "Error", "Error loading configuration, using default settings"
             )
             return AppConfiguration()
 

@@ -1,6 +1,6 @@
 # Emittance Scan Viewer
 
-This is a python3-based Tkinter application for viewing ECRIS emittance scans.
+This is a python3-based PyQt6 application for viewing ECRIS emittance scans.
 
 # Installation
 

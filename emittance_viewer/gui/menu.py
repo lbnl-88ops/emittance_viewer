@@ -1,31 +1,29 @@
-import tkinter as tk
+from PyQt6.QtWidgets import QMenuBar, QMenu
+from PyQt6.QtGui import QAction
 
-
-class AppMenu(tk.Menu):
-    def __init__(
-        self,
-        owner,
-        *args,
-        **kwargs,
-    ):
-        super().__init__(owner, relief=tk.FLAT, *args, **kwargs)
+class AppMenu:
+    def __init__(self, owner):
         self._owner = owner
-        self.create_menus()
 
-    def create_menus(self):
-        self.hamburger_menu = tk.Menu(self, tearoff=0, borderwidth=3, border=1)
-        self.add_cascade(label="☰", menu=self.hamburger_menu)
-        self.hamburger_menu.add_command(
-            label="Open data directory", command=self._owner.open_data_directory
-        )
-        self.hamburger_menu.add_command(
-            label="Open configuration directory",
-            command=self._owner.open_config_directory,
-        )
-        self.hamburger_menu.add_separator()
-        self.hamburger_menu.add_command(
-            label="Open diagnostic window", command=self._owner.diagnostic_mode
-        )
-        self.hamburger_menu.add_separator()
-        self.hamburger_menu.add_separator()
-        self.hamburger_menu.add_command(label="Quit", command=self._owner.quit)
+    def populate_menu(self, menu_bar: QMenuBar):
+        hamburger_menu = menu_bar.addMenu("☰")
+        
+        open_data_action = QAction("Open data directory", self._owner)
+        open_data_action.triggered.connect(self._owner.open_data_directory)
+        hamburger_menu.addAction(open_data_action)
+        
+        open_config_action = QAction("Open configuration directory", self._owner)
+        open_config_action.triggered.connect(self._owner.open_config_directory)
+        hamburger_menu.addAction(open_config_action)
+        
+        hamburger_menu.addSeparator()
+        
+        diagnostic_action = QAction("Open diagnostic window", self._owner)
+        diagnostic_action.triggered.connect(self._owner.diagnostic_mode)
+        hamburger_menu.addAction(diagnostic_action)
+        
+        hamburger_menu.addSeparator()
+        
+        quit_action = QAction("Quit", self._owner)
+        quit_action.triggered.connect(self._owner.quit)
+        hamburger_menu.addAction(quit_action)

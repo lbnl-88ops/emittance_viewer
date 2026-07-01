@@ -1777,33 +1777,6 @@ files = [
 ]
 
 [[package]]
-name = "tk"
-version = "0.1.0"
-description = "TensorKit is a deep learning helper between Python and C++."
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "tk-0.1.0-py3-none-any.whl", hash = "sha256:703a69ff0d5ba2bd2f7440582ad10160e4a6561595d33457dc6caa79b9bf4930"},
-    {file = "tk-0.1.0.tar.gz", hash = "sha256:60bc8923d5d35f67f5c6bd93d4f0c49d2048114ec077768f959aef36d4ed97f8"},
-]
-
-[[package]]
-name = "ttkbootstrap"
-version = "1.20.2"
-description = "A supercharged theme extension for tkinter that enables on-demand modern flat style themes inspired by Bootstrap."
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-files = [
-    {file = "ttkbootstrap-1.20.2-py3-none-any.whl", hash = "sha256:6b3f25aa173c09423474ac31eeb2d766cf0f9514c8debe24da8d1f062e4afdcf"},
-    {file = "ttkbootstrap-1.20.2.tar.gz", hash = "sha256:e8408ff4cffd7eb2767d7b33c3882d59c1bdf37cfeba29d9a3d45f486d370c7a"},
-]
-
-[package.dependencies]
-pillow = ">=10,<13"
-
-[[package]]
 name = "typing-extensions"
 version = "4.15.0"
 description = "Backported and Experimental Type Hints for Python 3.9+"
@@ -1932,4 +1905,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<3.15"
-content-hash = "7248a66918553b73d2687cc4206b4b1a9feef940470dbf0e3053c7acbeb89bf8"
+content-hash = "a28d10a3e7fdfae28043cb53ffec7fed0d7bd6e9960bc32f8c422dcc41ef576f"

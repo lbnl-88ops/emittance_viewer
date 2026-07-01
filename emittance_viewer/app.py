@@ -2,28 +2,29 @@
 
 import logging
 from pathlib import Path
-import tkinter as tk
-from tkinter import ttk as ttk_main
-from tkinter import messagebox
-from tkinter import filedialog
-import matplotlib
-import matplotlib.pyplot as plt
+import sys
 import platform
 import os
 import subprocess
 
-import ttkbootstrap as ttk
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
+    QSplitter, QScrollArea, QLabel, QFrame
+)
+from PyQt6.QtCore import Qt
 
+import matplotlib
+import matplotlib.pyplot as plt
 
 from .coordinator import Coordinator, FileListType
 from emittance_viewer.files.configuration import (
     AppConfiguration,
     create_configuration,
     save_configuration,
+    load_configuration,
     CONFIG_FILEPATH,
 )
 from emittance_viewer.gui.style.patchMatplotlib import applyPatch
-from emittance_viewer.files.client import clear_temp_files
 from emittance_viewer.gui.status_pane import StatusPane
 from emittance_viewer.status_bar import StatusBarSingleton
 
@@ -32,13 +33,10 @@ from .gui import (
     FileList,
     PlotControls,
     Plot,
-    FileListControls,
     AppMenu,
     DiagnosticWindow,
     FileInfoPane
 )
-from .gui.windows.vertical_scroll_frame import VerticalScrolledFrame
-
 
 __version__ = "0.1.0"
 
@@ -46,178 +44,161 @@ matplotlib.rc("font", size=14)
 applyPatch()
 
 logger = logging.getLogger("ops")
-# logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-
-class EmittanceViewer(ttk.Window):
+class EmittanceViewer(QMainWindow):
     def __init__(self, configuration: AppConfiguration | None):
         super().__init__()
         self.configuration = configuration
         if self.configuration is None:
             self.configuration = create_configuration()
 
-        if (
-            self.configuration.window_x is not None
-            and self.configuration.window_y is not None
-        ):
-            self.geometry(
-                f"{self.configuration.window_width}x{self.configuration.window_height}+{self.configuration.window_x}+{self.configuration.window_y}"
-            )
-        else:
-            self.geometry(
-                f"{self.configuration.window_width}x{self.configuration.window_height}"
-            )
+        self.setWindowTitle(f"Emittance Viewer (v{__version__})")
+        self.resize(self.configuration.window_width, self.configuration.window_height)
+        
+        if self.configuration.window_x is not None and self.configuration.window_y is not None:
+            self.move(self.configuration.window_x, self.configuration.window_y)
 
-        self.title(f"Emittance Viewer (v{__version__})")
-        self.pad = 5.0
         self.create_widgets()
         self.create_menu()
-        self._info_visible = False
-        self.protocol("WM_DELETE_WINDOW", self.quit)
-        self.update()
-        if self.configuration.sash_position is not None:
-            try:
-                self.paned_window.sashpos(0, self.configuration.sash_position)
-            except Exception as e:
-                logging.error(f"Error setting sash position: {e}")
-        self.minsize(800, 600)
+        self.setMinimumSize(800, 600)
 
-    def quit(self):
-        # Save geometry
-        # self.configuration.window_width = self.winfo_width()
-        # self.configuration.window_height = self.winfo_height()
-        # self.configuration.window_x = self.winfo_x()
-        # self.configuration.window_y = self.winfo_y()
-
-        # try:
-        #     self.configuration.sash_position = self.paned_window.sashpos(0)
-        # except Exception as e:
-        #     logging.error(f"Error getting sash position: {e}")
-
-        # save_configuration(self.configuration)
-
-        # clear_temp_files()
-        plt.close("all")
-        self.destroy()
+        # Connect status bar singleton to our status bar
+        StatusBarSingleton().status_changed.connect(self.statusBar().showMessage)
+        self.statusBar().showMessage(StatusBarSingleton().get_status())
 
     def create_menu(self):
-        self.menu = AppMenu(self)
-        self.config(menu=self.menu)
+        self.app_menu = AppMenu(self)
+        self.app_menu.populate_menu(self.menuBar())
 
     def create_widgets(self):
-        self.main_frame = ttk.Frame(self)
-        self.main_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-        self.status_bar = ttk.Frame(self)
-        self.status_bar.pack(side=tk.TOP, fill=tk.X, expand=False)
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+        self.main_layout = QVBoxLayout(self.central_widget)
 
-        self.status_label = ttk.Label(
-            self.status_bar,
-            textvariable=StatusBarSingleton().get_status_var(),
-            bootstyle="secondary",
-            anchor=tk.W,
-        )
+        self.splitter = QSplitter(Qt.Orientation.Horizontal)
+        self.main_layout.addWidget(self.splitter)
 
-        self.status_label.pack(side=tk.LEFT)
-        self.paned_window = ttk.Panedwindow(
-            self.main_frame,
-            orient=tk.HORIZONTAL,
-            # bootstyle="secondary",
-        )
+        # Plot area
+        self.plot = Plot()
+        self.splitter.addWidget(self.plot)
 
-        self.paned_window.pack(fill=tk.BOTH, expand=True)
-        ttk_main.Style().configure(
-            "Sash",
-            sashthickness=10,
-            gripcount=4,
-        )
+        # Control pane (scrollable)
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.control_pane = QWidget()
+        self.control_layout = QVBoxLayout(self.control_pane)
+        self.scroll_area.setWidget(self.control_pane)
+        self.splitter.addWidget(self.scroll_area)
 
-        self.plot = Plot(self.paned_window)
-        self.control_pane = VerticalScrolledFrame(self.paned_window)
+        # Set initial splitter sizes
+        if self.configuration.sash_position is not None:
+            self.splitter.setSizes([self.configuration.sash_position, self.width() - self.configuration.sash_position])
+        else:
+            self.splitter.setStretchFactor(0, 3)
+            self.splitter.setStretchFactor(1, 1)
 
-        self.paned_window.add(self.plot, weight=3)
-        self.paned_window.add(self.control_pane, weight=1)  # , minsize=400)
-        # self.btToggleFileInfo.pack(fill="y", side="left")
+        # Components in control pane
+        self.status_pane = StatusPane()
+        self.control_layout.addWidget(self.status_pane)
 
-        self.status_pane = StatusPane(self.control_pane.interior)
-        self.file_list_pane = ttk.Frame(self.control_pane.interior)
+        # File lists
+        self.file_list_container = QWidget()
+        self.file_list_grid = QHBoxLayout(self.file_list_container)
+        
+        self.available_files_layout = QVBoxLayout()
+        self.available_files_layout.addWidget(QLabel("Available Files", alignment=Qt.AlignmentFlag.AlignCenter))
+        self.file_list = FileList()
+        self.available_files_layout.addWidget(self.file_list)
+        self.file_list_grid.addLayout(self.available_files_layout)
 
-        self.file_list = FileList(self.file_list_pane)
-        self.plotted_file_list = FileList(self.file_list_pane)
+        self.plotted_files_layout = QVBoxLayout()
+        self.plotted_files_layout.addWidget(QLabel("Plotted Files", alignment=Qt.AlignmentFlag.AlignCenter))
+        self.plotted_file_list = FileList()
+        self.plotted_files_layout.addWidget(self.plotted_file_list)
+        self.file_list_grid.addLayout(self.plotted_files_layout)
 
-        self.plot_controls = PlotControls(self.control_pane.interior)
-        self.tools = Tools(self.control_pane.interior)
-        self.file_info_pane = FileInfoPane(self.control_pane.interior)
+        self.control_layout.addWidget(self.file_list_container)
 
-        self.status_pane.pack()
-        self.file_list_pane.pack()
-        ttk.Label(self.file_list_pane, text="Available Files", justify="center").grid(
-            row=0, column=0, sticky="n"
-        )
-        ttk.Label(self.file_list_pane, text="Plotted Files", justify="center").grid(
-            row=0, column=1, sticky="n"
-        )
-        self.file_list.grid(row=1, column=0, sticky="n", padx=10, pady=(0, 10))
-        self.plotted_file_list.grid(row=1, column=1, sticky="n", padx=10, pady=(0, 10))
-        self.plot_controls.pack()
-        self.tools.pack()
-        self.file_info_pane.pack()
-        self.strToggleInfoText = ttk.StringVar(value=">>")
+        self.plot_controls = PlotControls()
+        self.control_layout.addWidget(self.plot_controls)
 
+        self.tools = Tools()
+        self.control_layout.addWidget(self.tools)
+
+        self.file_info_pane = FileInfoPane()
+        self.control_layout.addWidget(self.file_info_pane)
+
+        self.control_layout.addStretch()
+
+        # Coordinator
         self.coordinator = Coordinator(
             self,
             [
                 self.plot_controls,
                 self.plot,
                 self.tools,
+                self.file_info_pane,
+                self.status_pane
             ],
             self.configuration.default_directory,
         )
         self.coordinator.attach(self.file_list, FileListType.TO_PLOT)
         self.coordinator.attach(self.plotted_file_list, FileListType.PLOTTED)
-        self.coordinator.attach(self.status_pane)
-        self.coordinator.attach(self.file_info_pane)
         self.coordinator.initialize()
 
     def diagnostic_mode(self):
+        if hasattr(self, "_diagnostic_window") and self._diagnostic_window.isVisible():
+            self._diagnostic_window.raise_()
+            self._diagnostic_window.activateWindow()
+            return
         self._diagnostic_window = DiagnosticWindow(self)
 
-    def toggle_rescale(self):
-        if not self.coordinator.rescale_using_oxygen.get():
-            logging.info("Turning off oxygen rescaling")
-            self.status_pane.strWarning.set("⚠️ Warning: Not rescaling!")
-            self.status_pane.lblWarning.config(bootstyle="inverse-danger")
-        else:
-            logging.info("Turning on oxygen rescaling")
-            self.status_pane.strWarning.set("")
-            self.status_pane.lblWarning.config(bootstyle="danger")
+    def quit(self):
+        plt.close("all")
+        self.close()
 
-    def toggle_blitting(self):
-        logging.info(self.plot.use_blitting.get())
-        if self.plot.use_blitting.get():
-            if not messagebox.askokcancel(
-                "Warning",
-                """Activating blitting may cause some plot elements to not update automatically unless resized, are you sure you want to do this?""",
-            ):
-                self.plot.use_blitting.set(False)
+    def closeEvent(self, event):
+        # Save geometry
+        self.configuration.window_width = self.width()
+        self.configuration.window_height = self.height()
+        self.configuration.window_x = self.x()
+        self.configuration.window_y = self.y()
+        
+        # Save splitter positions
+        sizes = self.splitter.sizes()
+        if sizes:
+            # We don't have a direct 'sash_position' in QSplitter but we can save the first size
+            self.configuration.sash_position = sizes[0]
+
+        save_configuration(self.configuration)
+        plt.close("all")
+        event.accept()
+
+    def open_data_directory(self):
+        self._open_directory(self.configuration.default_directory)
+
+    def open_config_directory(self):
+        self._open_directory(CONFIG_FILEPATH)
 
     def _open_directory(self, path):
+        path = str(path)
         if platform.system() == "Windows":
             os.startfile(path)
         elif platform.system() == "Darwin":
             subprocess.Popen(["open", path])
         elif platform.system() == "Linux":
             subprocess.Popen(["xdg-open", path])
-        else:
-            messagebox.showerror(
-                "Error", "Cannot open directory: unsupported operating system"
-            )
 
-    def open_config_directory(self):
-        self._open_directory(CONFIG_FILEPATH)
+def emittance_viewer():
+    app = QApplication(sys.argv)
+    configuration = load_configuration()
+    viewer = EmittanceViewer(configuration)
+    viewer.show()
+    sys.exit(app.exec())
 
-    def open_data_directory(self):
-        self._open_directory(self.default_path)
+if __name__ == "__main__":
+    emittance_viewer()

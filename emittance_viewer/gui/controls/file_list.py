@@ -1,61 +1,53 @@
 from pathlib import Path
-import tkinter as tk
 from typing import List
-import ttkbootstrap as ttk
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QListWidget, QAbstractItemView, QListWidgetItem
+from PyQt6.QtCore import pyqtSignal
 
 from ops.ecris.analysis.io.read_emittance_scan_file import _file_formatted_timestamp
 
-BLUE = "#5200FF"
-WHITE = "#FFFFFF"
+class FileList(QWidget):
+    selectionChanged = pyqtSignal()
 
-
-class FileList(tk.Frame):
-    def __init__(self, owner, *args, **kwargs):
-        super().__init__(owner, *args, **kwargs)
-        self.owner = owner
-
-        # Listbox to display files
-        self.directory_label = tk.Label(self)
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
 
         self.files: List[Path] = []
-        self.stringvar = tk.Variable(value=[""])
-        self.file_listbox = tk.Listbox(
-            self, width=25, selectmode=tk.SINGLE, listvariable=self.stringvar
-        )
-        self.file_listbox.pack(side="left", fill="y")
-        self.scrollbar = ttk.Scrollbar(self, orient="vertical")
-        self.scrollbar.config(command=self.file_listbox.yview)
-        self.scrollbar.pack(side="left", fill="y")
-        self.file_listbox.config(yscrollcommand=self.scrollbar.set)
+        self.file_listbox = QListWidget()
+        self.file_listbox.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.file_listbox.itemSelectionChanged.connect(self.selectionChanged.emit)
+        
+        self.layout.addWidget(self.file_listbox)
 
     def get_selected_file(self) -> Path | None:
-        for i in self.file_listbox.curselection():
-            return self.files[i]
+        selected_items = self.file_listbox.selectedIndexes()
+        if selected_items:
+            return self.files[selected_items[0].row()]
+        return None
 
     def fill_list_box(self, file_list: List[Path]):
-        # Capture current scroll position and selection
-        yview = self.file_listbox.yview()
-        selection = self.file_listbox.curselection()
-
-        self.files = file_list
-        self.file_listbox.delete(0, tk.END)
-        filenames = [
-            _file_formatted_timestamp(f)
-            for f in file_list
-            if _file_formatted_timestamp(f) != "UNKNOWN"
-        ]
+        # Save current selection
+        current_row = self.file_listbox.currentRow()
+        
+        filtered_files = []
+        filenames = []
+        for f in file_list:
+            fmt = _file_formatted_timestamp(f)
+            if fmt != "UNKNOWN":
+                filtered_files.append(f)
+                filenames.append(fmt)
+        
+        self.files = filtered_files
+        self.file_listbox.clear()
+        
         if not filenames:
-            self.stringvar.set(["No files found"])
-            self.file_listbox.configure(state=tk.DISABLED)
+            self.file_listbox.addItem("No files found")
+            self.file_listbox.setEnabled(False)
         else:
-            self.stringvar.set(filenames)
-            self.file_listbox.configure(state=tk.NORMAL)
+            self.file_listbox.addItems(filenames)
+            self.file_listbox.setEnabled(True)
             
-            # Restore scroll position
-            if yview:
-                self.file_listbox.yview_moveto(yview[0])
-            
-            # Restore selection
-            for idx in selection:
-                if idx < len(filenames):
-                    self.file_listbox.selection_set(idx)
+            # Restore selection if possible
+            if current_row >= 0 and current_row < self.file_listbox.count():
+                self.file_listbox.setCurrentRow(current_row)

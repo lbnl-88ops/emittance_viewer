@@ -1,12 +1,17 @@
 from logging import Handler, getLogger, info
-import tkinter as tk
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QTextEdit
+from PyQt6.QtCore import Qt
 
-class DiagnosticWindow(tk.Toplevel):
-    def __init__(self, owner, *args, **kwargs):
-        super().__init__(owner, takefocus=False)
-        self.title('Diagnostics Log')
-        self.log_text = tk.Text(self)
-        self.log_text.pack(expand=True, fill='both')
+class DiagnosticWindow(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle('Diagnostics Log')
+        self.resize(600, 400)
+        self.layout = QVBoxLayout(self)
+        
+        self.log_text = QTextEdit()
+        self.log_text.setReadOnly(True)
+        self.layout.addWidget(self.log_text)
 
         class LogHandler(Handler):
             def __init__(self, text_widget):
@@ -15,16 +20,14 @@ class DiagnosticWindow(tk.Toplevel):
 
             def emit(self, record):
                 msg = self.format(record)
-                self._text_widget.insert(tk.END, msg + '\n')
-                self._text_widget.see(tk.END)
+                self._text_widget.append(msg)
         
         self.handler = LogHandler(self.log_text)
         getLogger().addHandler(self.handler)
         info('Opened diagnostic log window')        
+        
+        self.show()
 
-        self.protocol("WM_DELETE_WINDOW", self.on_close)
-
-
-    def on_close(self):
+    def closeEvent(self, event):
         getLogger().removeHandler(self.handler)
-        self.destroy()
+        event.accept()

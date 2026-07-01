@@ -1,39 +1,36 @@
-from enum import Enum, auto
-
-import ttkbootstrap as ttk
-import tkinter as tk
+from enum import auto, Enum
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PyQt6.QtCore import Qt
 
 from emittance_viewer.gui.controls.controls import FileListControls
 
-_FONT = "TkDefaultFont"
-_MODE_FONT = (_FONT, 12, "bold")
-
-
-class FileMode:
+class FileMode(Enum):
     REMOTE = auto()
     LOCAL = auto()
 
-
-class StatusPane(ttk.Frame):
-    def __init__(self, owner, *args, **kwargs):
-        super().__init__(owner, *args, **kwargs)
-        self._owner = owner
-        self.strWarning = ttk.StringVar(value="")
-        self.strStatus = tk.StringVar(value="")
-        self.strFileMode = tk.StringVar(value="")
-        self.create_widgets()
-
-    def create_widgets(self):
-        self.lblFileMode = ttk.Label(
-            self, textvariable=self.strFileMode, font=_MODE_FONT
-        )
-        self.lblFileMode.pack()
-        self.lblStatus = ttk.Label(self, textvariable=self.strStatus)
-        self.lblStatus.pack()
-        self.lblWarning = ttk.Label(self, textvariable=self.strWarning)
-        self.lblWarning.pack()
-        self.file_list_controls = FileListControls(self)
-        self.file_list_controls.pack()
+class StatusPane(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        
+        self.lblFileMode = QLabel()
+        self.lblFileMode.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lblFileMode.setStyleSheet("font-weight: bold; font-size: 16px;")
+        
+        self.lblStatus = QLabel()
+        self.lblStatus.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        self.lblWarning = QLabel()
+        self.lblWarning.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lblWarning.setStyleSheet("color: red;")
+        
+        self.file_list_controls = FileListControls()
+        
+        self.layout.addWidget(self.lblFileMode)
+        self.layout.addWidget(self.lblStatus)
+        self.layout.addWidget(self.lblWarning)
+        self.layout.addWidget(self.file_list_controls)
 
     def set_file_mode(self, mode: FileMode, info: str):
         match mode:
@@ -41,5 +38,5 @@ class StatusPane(ttk.Frame):
                 file_mode = "Remote"
             case _:
                 file_mode = "Local"
-        self.strFileMode.set(f"File mode: {file_mode}")
-        self.strStatus.set(info)
+        self.lblFileMode.setText(f"File mode: {file_mode}")
+        self.lblStatus.setText(info)
