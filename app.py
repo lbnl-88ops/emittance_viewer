@@ -66,7 +66,11 @@ def main():
         sys.exit(1)
 
     try:
+        import logging
+        logger = logging.getLogger("ops")
+        logger.info("Importing emittance_viewer.app...")
         from emittance_viewer.app import emittance_viewer
+        logger.info("Import successful.")
     except Exception:
         error_text = traceback.format_exc()
         import logging

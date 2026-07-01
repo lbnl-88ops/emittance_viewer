@@ -44,15 +44,10 @@ from .gui.style.styles import MENU_STYLE, TITLE_LABEL_STYLE, add_label
 
 __version__ = "0.1.0"
 
+# Initialize logging and matplotlib settings
+configure_logging()
 matplotlib.rc("font", size=14)
 applyPatch()
-
-# Idempotent: if the frozen root app.py already called this, this is a
-# no-op. This covers the `poetry run emittance_viewer` / console-script
-# entry point (emittance_viewer.app:emittance_viewer), which does not go
-# through the root app.py bootstrap and would otherwise have no file
-# logging at all.
-configure_logging()
 
 logger = logging.getLogger("ops")
 
@@ -204,10 +199,17 @@ class EmittanceViewer(QMainWindow):
             subprocess.Popen(["xdg-open", path])
 
 def emittance_viewer():
+    import logging
+    logger = logging.getLogger("ops")
+    logger.info("Initializing QApplication...")
     app = QApplication(sys.argv)
+    logger.info("Loading configuration...")
     configuration = load_configuration()
+    logger.info("Creating EmittanceViewer window...")
     viewer = EmittanceViewer(configuration)
+    logger.info("Showing window...")
     viewer.show()
+    logger.info("Starting event loop.")
     sys.exit(app.exec())
 
 if __name__ == "__main__":
