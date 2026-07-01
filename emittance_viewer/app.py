@@ -17,6 +17,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 from .coordinator import Coordinator, FileListType
+from emittance_viewer.files.client import clear_temp_files
 from emittance_viewer.files.configuration import (
     AppConfiguration,
     create_configuration,
@@ -161,6 +162,7 @@ class EmittanceViewer(QMainWindow):
         self._diagnostic_window = DiagnosticWindow(self)
 
     def quit(self):
+        clear_temp_files()
         plt.close("all")
         self.close()
 
@@ -178,6 +180,7 @@ class EmittanceViewer(QMainWindow):
             self.configuration.sash_position = sizes[0]
 
         save_configuration(self.configuration)
+        clear_temp_files()
         plt.close("all")
         event.accept()
 
