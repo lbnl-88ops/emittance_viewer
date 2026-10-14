@@ -13,12 +13,16 @@ class Plot(QWidget):
         self.create_widgets(n_plots=0)
 
     def create_widgets(self, n_plots: int):
+        import logging
+        logger = logging.getLogger("ops")
+        logger.info(f"Plot.create_widgets started (n_plots={n_plots})")
         import matplotlib.pyplot as plt
         if self.canvas:
             self.layout.removeWidget(self.canvas)
             plt.close(self._figure)
             self.canvas.deleteLater()
             
+        logger.info("Creating matplotlib figure")
         self._figure, self._axs = create_figure(n_plots)
         
         # Hide extra axes if they are not used
@@ -26,10 +30,13 @@ class Plot(QWidget):
             for i in range(n_plots, len(self._axs)):
                 self._axs[i].set_visible(False)
         
+        logger.info("Creating FigureCanvas")
         self.canvas = Figure(self._figure)
 
         self.layout.addWidget(self.canvas)
+        logger.info("Drawing canvas")
         self.canvas.draw()
+        logger.info("Plot.create_widgets finished")
 
     def clear_plot(self):
         if self.canvas:

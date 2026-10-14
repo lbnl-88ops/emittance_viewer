@@ -53,31 +53,42 @@ logger = logging.getLogger("ops")
 
 class EmittanceViewer(QMainWindow):
     def __init__(self, configuration: AppConfiguration | None):
+        logger.info("EmittanceViewer.__init__ started")
         super().__init__()
         self.configuration = configuration
         if self.configuration is None:
+            logger.info("Creating default configuration")
             self.configuration = create_configuration()
 
+        logger.info("Setting window properties")
         self.setWindowTitle(f"Emittance Viewer (v{__version__})")
         self.resize(self.configuration.window_width, self.configuration.window_height)
         
         if self.configuration.window_x is not None and self.configuration.window_y is not None:
             self.move(self.configuration.window_x, self.configuration.window_y)
 
+        logger.info("Applying stylesheet")
         self.setStyleSheet(f"background: {COLOR_BG}; color: {COLOR_TEXT};" + MENU_STYLE)
+        
+        logger.info("Calling create_widgets")
         self.create_widgets()
+        
+        logger.info("Calling create_menu")
         self.create_menu()
         self.setMinimumSize(800, 600)
 
+        logger.info("Connecting status bar")
         # Connect status bar singleton to our status bar
         StatusBarSingleton().status_changed.connect(self.statusBar().showMessage)
         self.statusBar().showMessage(StatusBarSingleton().get_status())
+        logger.info("EmittanceViewer.__init__ finished")
 
     def create_menu(self):
         self.app_menu = AppMenu(self)
         self.app_menu.populate_menu(self.menuBar())
 
     def create_widgets(self):
+        logger.info("create_widgets started")
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.main_layout = QVBoxLayout(self.central_widget)
@@ -86,10 +97,12 @@ class EmittanceViewer(QMainWindow):
         self.main_layout.addWidget(self.splitter)
 
         # Plot area
+        logger.info("Creating Plot component")
         self.plot = Plot()
         self.splitter.addWidget(self.plot)
 
         # Control pane (scrollable)
+        logger.info("Creating control pane")
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
         self.control_pane = QWidget()
@@ -105,10 +118,12 @@ class EmittanceViewer(QMainWindow):
             self.splitter.setStretchFactor(1, 1)
 
         # Components in control pane
+        logger.info("Creating StatusPane")
         self.status_pane = StatusPane()
         self.control_layout.addWidget(self.status_pane)
 
         # File lists
+        logger.info("Creating file list container")
         self.file_list_container = QWidget()
         self.file_list_grid = QHBoxLayout(self.file_list_container)
         
@@ -126,18 +141,22 @@ class EmittanceViewer(QMainWindow):
 
         self.control_layout.addWidget(self.file_list_container)
 
+        logger.info("Creating PlotControls")
         self.plot_controls = PlotControls()
         self.control_layout.addWidget(self.plot_controls)
 
+        logger.info("Creating Tools")
         self.tools = Tools()
         self.control_layout.addWidget(self.tools)
 
+        logger.info("Creating FileInfoPane")
         self.file_info_pane = FileInfoPane()
         self.control_layout.addWidget(self.file_info_pane)
 
         self.control_layout.addStretch()
 
         # Coordinator
+        logger.info("Initializing Coordinator")
         self.coordinator = Coordinator(
             self,
             [
@@ -151,7 +170,10 @@ class EmittanceViewer(QMainWindow):
         )
         self.coordinator.attach(self.file_list, FileListType.TO_PLOT)
         self.coordinator.attach(self.plotted_file_list, FileListType.PLOTTED)
+        
+        logger.info("Calling coordinator.initialize")
         self.coordinator.initialize()
+        logger.info("create_widgets finished")
 
     def diagnostic_mode(self):
         if hasattr(self, "_diagnostic_window") and self._diagnostic_window.isVisible():

@@ -56,7 +56,7 @@ def main():
         from emittance_viewer.logging_setup import configure_logging, LOG_FILEPATH
         configure_logging()
         log_path = LOG_FILEPATH
-    except Exception:
+    except BaseException:
         error_text = traceback.format_exc()
         try:
             with open(fallback_log_path, "a", encoding="utf-8") as f:
@@ -72,7 +72,7 @@ def main():
         logger.info("Importing emittance_viewer.app...")
         from emittance_viewer.app import emittance_viewer
         logger.info("Import successful.")
-    except Exception:
+    except BaseException:
         error_text = traceback.format_exc()
         import logging
         logging.getLogger("ops").critical(
@@ -83,7 +83,7 @@ def main():
 
     try:
         emittance_viewer()
-    except Exception:
+    except BaseException:
         error_text = traceback.format_exc()
         import logging
         logging.getLogger("ops").critical(

@@ -150,10 +150,15 @@ class Coordinator:
             )
 
     def initialize(self) -> None:
+        _log.info("Coordinator.initialize started")
         self._configure_objects()
+        _log.info("Objects configured")
         self.update_connection_status()
+        _log.info("Connection status updated")
         self.refresh_file_lists()
+        _log.info("File lists refreshed")
         update_status_bar("Initialized")
+        _log.info("Coordinator.initialize finished")
 
     def choose_directory(self):
         new_directory = QFileDialog.getExistingDirectory(
