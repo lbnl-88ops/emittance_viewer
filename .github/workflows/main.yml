@@ -37,11 +37,14 @@ jobs:
         if: ${{ github.event.inputs.debug_build != 'true' }}
         run: poetry run pyinstaller emittance_viewer.spec
       - name: Upload Debug build artifact
-        if: ${{ github.event.inputs.debug_build == 'true' }}
+        if: always() && github.event.inputs.debug_build == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: emittance_viewer-debug-build
-          path: dist/emittance_viewer/
+          path: |
+            dist/emittance_viewer/
+            build/emittance_viewer/warn-emittance_viewer.txt
+            build/emittance_viewer/xref-emittance_viewer.html
       - name: Build installer
         if: ${{ github.event.inputs.debug_build != 'true' }}
         run: |

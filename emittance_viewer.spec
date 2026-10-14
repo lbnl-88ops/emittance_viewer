@@ -109,7 +109,7 @@ exe = EXE(
     debug=DEBUG_BUILD,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,
     # console=True (Debug build): a console window stays open and shows
     # print()/traceback output, including anything our excepthook in
     # emittance_viewer/logging_setup.py logs.
@@ -128,7 +128,7 @@ coll = COLLECT(
     a.binaries,
     a.datas,
     strip=False,
-    upx=True,
+    upx=False,
     upx_exclude=[],
     name="emittance_viewer",
 )
