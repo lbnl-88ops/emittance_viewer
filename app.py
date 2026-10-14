@@ -31,8 +31,8 @@ def _show_fatal_error_dialog(log_path, error_text):
                 f"Details were written to:\n{log_path}\n\n"
                 f"{error_text[-800:]}"
             )
-            # MB_OK | MB_ICONERROR
-            ctypes.windll.user32.MessageBoxW(0, message, "Emittance Viewer - Startup Error", 0x10)
+            # MB_OK | MB_ICONERROR | MB_TOPMOST
+            ctypes.windll.user32.MessageBoxW(0, message, "Emittance Viewer - Startup Error", 0x40010)
         else:
             # No guaranteed GUI toolkit available on non-Windows without
             # Qt; fall back to stderr, which is visible when run from a
@@ -50,7 +50,8 @@ def main():
     # machine). Fall back to a hardcoded, best-effort log path so we still
     # have somewhere to write the traceback and something to point the
     # user at.
-    fallback_log_path = "emittance_viewer_startup_error.log"
+    import os
+    fallback_log_path = os.path.join(os.environ.get("TEMP", "."), "emittance_viewer_startup_error.log")
     try:
         from emittance_viewer.logging_setup import configure_logging, LOG_FILEPATH
         configure_logging()
@@ -93,4 +94,6 @@ def main():
 
 
 if __name__ == "__main__":
+    import multiprocessing
+    multiprocessing.freeze_support()
     main()
