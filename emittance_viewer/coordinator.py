@@ -241,14 +241,18 @@ class Coordinator:
             self.refresh_file_lists()
 
     def refresh_file_lists(self):
+        _log.info(f"refresh_file_lists started, mode={self.mode}")
         current_time = time.time()
         dt_object = datetime.fromtimestamp(current_time)
         self._last_updated = dt_object.strftime("%Y-%m-%d %H:%M")
         match self.mode:
             case FileMode.REMOTE:
+                _log.info("Fetching remote files...")
                 found_files = list_files()
+                _log.info(f"Found {len(found_files)} remote files")
                 if not found_files:
-                    QMessageBox.critical(self._root_window, "Error", "Failed to connect to remote server.")
+                    _log.warning("No remote files found or connection failed")
+                    # QMessageBox.critical(self._root_window, "Error", "Failed to connect to remote server.")
                     self.mode = FileMode.LOCAL
                     self.refresh_file_lists()
                     return
@@ -256,18 +260,23 @@ class Coordinator:
                     if self._status_pane:
                         self._status_pane.file_list_controls.btChangeDirectory.setEnabled(False)
             case _:
+                _log.info(f"Listing local files in {self._current_directory}")
                 found_files = list_local_files(self._current_directory)
+                _log.info(f"Found {len(found_files)} local files")
                 if self._status_pane:
                     self._status_pane.file_list_controls.btChangeDirectory.setEnabled(True)
         
         self._files_available = len(found_files)
+        _log.info("Sorting and filtering files")
         files = [
             f for f in reversed(sorted(found_files)) if f not in self.plotted_filepaths
         ]
         
         if self._file_list:
+            _log.info("Filling file listbox")
             self._file_list.fill_list_box(files)
         if self._plotted_file_list:
+            _log.info("Filling plotted file listbox")
             self._plotted_file_list.fill_list_box(self.plotted_filepaths)
             
         if self._tools:
@@ -275,4 +284,4 @@ class Coordinator:
             
         self.update_connection_status()
         self.update_button_states()
-        update_status_bar("File list refreshed.")
+        _log.info("refresh_file_lists finished")

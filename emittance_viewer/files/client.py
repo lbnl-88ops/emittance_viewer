@@ -19,7 +19,14 @@ TEMP_FOLDER = Path(user_cache_dir("emittance_viewer", "lbnl_88ops")) / "tmp"
 
 
 def list_local_files(directory: Path) -> List[Path]:
-    return [f.resolve() for f in directory.glob("emittance_scan_*.h5")]
+    _log.info(f"Scanning directory: {directory}")
+    try:
+        files = [f.resolve() for f in directory.glob("emittance_scan_*.h5")]
+        _log.info(f"Glob found {len(files)} files")
+        return files
+    except Exception as e:
+        _log.error(f"Error scanning directory {directory}: {e}")
+        return []
 
 
 def list_files() -> List[Path]:

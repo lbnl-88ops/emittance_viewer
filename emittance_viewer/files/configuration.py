@@ -61,7 +61,7 @@ def load_configuration() -> AppConfiguration | None:
                             continue
 
                 info("Configuration loaded successfully")
-                return AppConfiguration(
+                res = AppConfiguration(
                     default_directory=Path(config.get(DATA_DIRECTORY, ".")).absolute(),
                     custom_elements=custom_elements,
                     window_width=config.get("window_width", 1200),
@@ -70,6 +70,8 @@ def load_configuration() -> AppConfiguration | None:
                     window_y=config.get("window_y"),
                     sash_position=config.get("sash_position"),
                 )
+                info(f"Default directory: {res.default_directory}")
+                return res
         except tomllib.TOMLDecodeError:
             info("TOML Decode Error")
             QMessageBox.critical(
