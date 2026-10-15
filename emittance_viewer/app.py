@@ -53,35 +53,25 @@ logger = logging.getLogger("ops")
 
 class EmittanceViewer(QMainWindow):
     def __init__(self, configuration: AppConfiguration | None):
-        logger.info("EmittanceViewer.__init__ started")
         super().__init__()
         self.configuration = configuration
         if self.configuration is None:
-            logger.info("Creating default configuration")
             self.configuration = create_configuration()
 
-        logger.info("Setting window properties")
         self.setWindowTitle(f"Emittance Viewer (v{__version__})")
         self.resize(self.configuration.window_width, self.configuration.window_height)
         
         if self.configuration.window_x is not None and self.configuration.window_y is not None:
             self.move(self.configuration.window_x, self.configuration.window_y)
 
-        logger.info("Applying stylesheet")
         self.setStyleSheet(f"background: {COLOR_BG}; color: {COLOR_TEXT};" + MENU_STYLE)
-        
-        logger.info("Calling create_widgets")
         self.create_widgets()
-        
-        logger.info("Calling create_menu")
         self.create_menu()
         self.setMinimumSize(800, 600)
 
-        logger.info("Connecting status bar")
         # Connect status bar singleton to our status bar
         StatusBarSingleton().status_changed.connect(self.statusBar().showMessage)
         self.statusBar().showMessage(StatusBarSingleton().get_status())
-        logger.info("EmittanceViewer.__init__ finished")
 
     def create_menu(self):
         self.app_menu = AppMenu(self)

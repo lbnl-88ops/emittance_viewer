@@ -3,25 +3,12 @@ import logging
 
 _log = logging.getLogger(__name__)
 
-class StatusBarSingleton(QObject):
+class StatusBarSignalEmitter(QObject):
     status_changed = pyqtSignal(str)
-    _instance = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            _log.info("Creating StatusBarSingleton instance")
-            cls._instance = super(StatusBarSingleton, cls).__new__(cls)
-            # We will initialize in __init__ instead of here
-        return cls._instance
 
     def __init__(self):
-        # This will be called every time StatusBarSingleton() is called,
-        # but QObject.__init__ should only be called once.
-        if not hasattr(self, "_initialized"):
-            _log.info("Initializing StatusBarSingleton QObject")
-            super().__init__()
-            self._status = "Starting up..."
-            self._initialized = True
+        super().__init__()
+        self._status = "Starting up..."
 
     def get_status(self) -> str:
         return self._status
@@ -35,6 +22,15 @@ class StatusBarSingleton(QObject):
         except Exception as e:
             _log.error(f"Error emitting status signal: {e}")
 
+# The one and only instance
+_singleton_instance = None
+
+def StatusBarSingleton():
+    global _singleton_instance
+    if _singleton_instance is None:
+        _log.info("Creating StatusBarSignalEmitter singleton instance")
+        _singleton_instance = StatusBarSignalEmitter()
+    return _singleton_instance
 
 def update_status_bar(info: str) -> None:
     _log.info(f"update_status_bar called with: {info}")
