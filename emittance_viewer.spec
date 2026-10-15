@@ -47,7 +47,7 @@ hiddenimports += collect_submodules("emittance_viewer")
 # `ops/__init__.py`), split across two separate pip distributions
 # (ops.ecris and ops.ecris.analysis). PyInstaller's default hook does not
 # reliably walk namespace packages, so we collect them explicitly.
-for pkg in ("ops", "ops.ecris", "ops.ecris.analysis", "polars", "telnetlib3", "PIL", "requests", "scipy", "numpy", "matplotlib"):
+for pkg in ("ops", "ops.ecris", "ops.ecris.analysis", "polars", "telnetlib3", "PIL", "requests"):
     pkg_datas, pkg_binaries, pkg_hiddenimports = collect_all(pkg)
     datas += pkg_datas
     binaries += pkg_binaries
@@ -93,7 +93,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=["tkinter", "IPython", "notebook", "jupyter", "matplotlib.tests", "numpy.tests"],
     noarchive=False,
     optimize=0,
 )
