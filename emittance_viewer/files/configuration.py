@@ -31,15 +31,11 @@ class AppConfiguration:
 
 
 def load_configuration() -> AppConfiguration | None:
-    from logging import info
-    info(f"Checking for config file at {CONFIG_FULLPATH}")
     if not CONFIG_FULLPATH.exists():
-        info("Config file not found")
         return None
     else:
         try:
             with open(CONFIG_FULLPATH, "rb") as f:
-                info("Loading TOML...")
                 config = load(f)
                 custom_elements = []
                 if "element" in config:
@@ -60,8 +56,7 @@ def load_configuration() -> AppConfiguration | None:
                             info(f"Error parsing custom element: {e}")
                             continue
 
-                info("Configuration loaded successfully")
-                res = AppConfiguration(
+                return AppConfiguration(
                     default_directory=Path(config.get(DATA_DIRECTORY, ".")).absolute(),
                     custom_elements=custom_elements,
                     window_width=config.get("window_width", 1200),
@@ -70,16 +65,12 @@ def load_configuration() -> AppConfiguration | None:
                     window_y=config.get("window_y"),
                     sash_position=config.get("sash_position"),
                 )
-                info(f"Default directory: {res.default_directory}")
-                return res
         except tomllib.TOMLDecodeError:
-            info("TOML Decode Error")
             QMessageBox.critical(
                 None, "Error", "Error loading configuration, using default settings"
             )
             return AppConfiguration()
-        except Exception as e:
-            info(f"Unexpected error loading configuration: {e}")
+        except Exception:
             return AppConfiguration()
 
 
