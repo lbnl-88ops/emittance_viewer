@@ -1,14 +1,16 @@
 import numpy as np
 
-from logging import info
+from logging import info, error
 import matplotlib.pyplot as plt
 from emittance_viewer.files import EmittanceScanFile
 
+from ops.ecris.analysis.plot.emittance_scan import plot_file as plot_emittance
 from ops.ecris.analysis.emittance_scan.rms_emittance import (
     RMSEmittance,
     calculate_rms_emittance,
 )
 
+VENUS_OFFSET = 3.5
 
 def create_figure(n_subplots: int = 0):
     match n_subplots:
@@ -31,14 +33,33 @@ def create_figure(n_subplots: int = 0):
     return fig, axs
 
 
-def plot_file(ax, file: EmittanceScanFile):
+def plot_file(ax, file: EmittanceScanFile, offset: bool = True, sigma_clip = True):
     emittance_scan = file.emittance_scan
 
     if emittance_scan is None:
         info(f"File object: {file.path} has no emittance scan.")
         return None
 
+    if file.corrected:
+        offset = False
+        sigma_clip = False
+    try:
+        plot_emittance(ax, emittance_scan, offset=offset, sigma_clip=sigma_clip)
+    except RuntimeError:
+        plot_emittance(ax, emittance_scan, offset=offset, sigma_clip = False)
+    file.corrected = True
+    return
+
     rms: RMSEmittance = calculate_rms_emittance(emittance_scan)
+    if slit_offset is None:
+        slit_offset = VENUS_OFFSET
+    south_slit, north_slit = None, None
+    if plot_slits:
+        try:
+            south_slit = (emittance_scan.extra_metadata["slit_south"])
+            north_slit = -(24 - emittance_scan.extra_metadata["slit_north"])
+        except KeyError:
+            error("No slit information found")
 
     position = rms.x
     divergence = rms.xp
@@ -69,7 +90,11 @@ def plot_file(ax, file: EmittanceScanFile):
         "r--",
         label=r"$\epsilon_{rms}$ = " + f"{round(E_rms, 4)} [mm mrad]",
     )
+    if plot_slits and south_slit is not None and north_slit is not None:
+        for slit in [south_slit, north_slit]:
+            ax.axvline(slit - slit_offset, ls='--', c='r')
     from emittance_viewer.gui.style.constants import COLOR_BG
+
     props = dict(boxstyle="round", facecolor=COLOR_BG, alpha=1.0)
     ax.text(
         0.025,
@@ -85,6 +110,7 @@ def plot_file(ax, file: EmittanceScanFile):
         bbox=props,
     )
     ax.plot(rms.x_mean * 1e3, rms.xp_mean * 1e3, "wx")
+    ax.set_box_aspect(1)
     plt.colorbar(cm, ax=ax, label="Current (nA)")
     ax.set_xlim(rms.x[0], rms.x[-1])
     ax.set_ylim(rms.xp[0], rms.xp[-1])

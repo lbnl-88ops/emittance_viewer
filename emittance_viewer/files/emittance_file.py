@@ -26,6 +26,7 @@ class EmittanceScanFile:
         self.raw_timestamp = _file_raw_timestamp(path)
         self._emittance_scan = None
         self._artist = None
+        self.corrected: bool = False
 
     def __eq__(self, value: object) -> bool:
         if isinstance(value, EmittanceScanFile):
