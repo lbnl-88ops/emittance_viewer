@@ -2,6 +2,7 @@ import numpy as np
 
 from logging import info, error
 import matplotlib.pyplot as plt
+from ops.ecris.devices.motor_controller_specification import Axis
 from emittance_viewer.files import EmittanceScanFile
 
 from ops.ecris.analysis.plot.emittance_scan import plot_file as plot_emittance
@@ -48,5 +49,12 @@ def plot_file(ax, file: EmittanceScanFile, offset: bool = True, sigma_clip = Tru
     except RuntimeError:
         plot_emittance(ax, emittance_scan, offset=offset, sigma_clip = False)
     file.corrected = True
+
+    match emittance_scan.scan_parameters.axis:
+        case Axis.AcerX | Axis.AcerY:
+            ax.set_title(f"AECR scan\n{file.formatted_datetime}")
+        case Axis.VenusX | Axis.VenusY:
+            ax.set_title(f"VENUS scan\n{file.formatted_datetime}")
+
     return
 
