@@ -18,11 +18,11 @@ class PlotControls(QWidget):
         self.layout = QHBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
         
-        self.btPlotScan = add_button(self.layout, "Plot scan")
+        self.btPlotScan = add_button(self.layout, "Add to Comparison")
         self.btPlotScan.setStyleSheet(ACTION_BUTTON_STYLE)
-        self.btRemoveFromPlot = add_button(self.layout, "Remove from plot")
+        self.btRemoveFromPlot = add_button(self.layout, "Remove")
         self.btRemoveFromPlot.setEnabled(False)
-        self.btClearPlot = add_button(self.layout, "Clear Plot")
+        self.btClearPlot = add_button(self.layout, "Clear All")
         
     def activate_buttons(self, can_plot: bool = False, can_remove: bool = False):
         self.btPlotScan.setEnabled(can_plot)

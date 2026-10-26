@@ -8,4 +8,4 @@ from .plot import Plot
 from .menu import AppMenu
 from .diagnostic_window import DiagnosticWindow
 from .windows import FileComparisonWindow
-from .file_info_pane import FileInfoPane
+from .single_scan_pane import SingleScanPane

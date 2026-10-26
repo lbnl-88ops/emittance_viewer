@@ -16,8 +16,8 @@ from emittance_viewer.gui import (
     FileList,
     Plot,
     FileComparisonWindow,
-    FileInfoPane,
 )
+from emittance_viewer.gui.single_scan_pane import SingleScanPane
 from emittance_viewer.gui.status_pane import StatusPane, FileMode
 from emittance_viewer.files.client import (
     list_files,
@@ -42,6 +42,7 @@ class Coordinator:
             objects = [objects]
         self._root_window = root_window
         self.plotted_files = []
+        self.active_file = None
         self.mode = FileMode.LOCAL
         self._last_updated = "N/A"
         self._files_available = 0
@@ -53,7 +54,7 @@ class Coordinator:
         self._plot = None
         self._status_pane = None
         self._tools = None
-        self._file_info_pane = None
+        self._single_scan_pane = None
 
         self.attach_objects(objects)
 
@@ -79,15 +80,15 @@ class Coordinator:
             self._status_pane = object
         elif isinstance(object, Tools):
             self._tools = object
-        elif isinstance(object, FileInfoPane):
-            self._file_info_pane = object
+        elif isinstance(object, SingleScanPane):
+            self._single_scan_pane = object
         else:
             # Skip if it doesn't match known types (could be during initialization)
             pass
 
     def _configure_objects(self) -> None:
         if self._file_list:
-            self._file_list.selectionChanged.connect(self.update_button_states)
+            self._file_list.selectionChanged.connect(self.update_active_scan)
         if self._plotted_file_list:
             self._plotted_file_list.selectionChanged.connect(self.update_button_states)
             
@@ -99,10 +100,57 @@ class Coordinator:
         if self._plot_controls:
             self._plot_controls.btClearPlot.clicked.connect(self.clear_plot)
             self._plot_controls.btRemoveFromPlot.clicked.connect(self.remove_from_plot)
-            self._plot_controls.btPlotScan.clicked.connect(self.plot_file)
+            self._plot_controls.btPlotScan.clicked.connect(self.plot_active_file)
             
         if self._tools:
             self._tools.btOpenComparisonWindow.clicked.connect(self.open_comparison_window)
+
+        if self._single_scan_pane:
+            self._single_scan_pane.fittingChanged.connect(self.replot_active_scan)
+
+    def replot_active_scan(self):
+        if self.active_file:
+            self.update_active_scan()
+
+    def update_active_scan(self):
+        file = self._file_list.get_selected_file()
+        if file is not None:
+            if self.mode == FileMode.REMOTE:
+                emittance_file = download_file(file)
+                if emittance_file is None:
+                    return
+            else:
+                emittance_file = file
+            
+            file_size = os.path.getsize(emittance_file)
+            if file_size < 1:
+                return
+
+            self.active_file = EmittanceScanFile(emittance_file, file_size)
+            
+            fitting_params = {}
+            if self._single_scan_pane:
+                fitting_params = self._single_scan_pane.get_fitting_params()
+            
+            if self._plot:
+                self._plot.plot([self.active_file], **fitting_params)
+            
+            if self._single_scan_pane:
+                from emittance_viewer.plotting.plot_emittance_scan import calculate_extended_data
+                data = calculate_extended_data(self.active_file, **fitting_params)
+                self._single_scan_pane.update_data(data)
+        
+        self.update_button_states()
+
+    def plot_active_file(self):
+        """Adds the active file to the plotted_files list for comparison"""
+        if self.active_file and self.active_file not in self.plotted_files:
+            if len(self.plotted_files) >= 4:
+                 QMessageBox.warning(self._root_window, "Warning", "Max 4 files for comparison.")
+                 return
+            self.plotted_files.append(self.active_file)
+            self.refresh_file_lists()
+            update_status_bar(f"Added {self.active_file.filename} to comparison.")
 
     def open_comparison_window(self):
         if hasattr(self, "_comparison_window") and self._comparison_window.isVisible():
@@ -120,7 +168,7 @@ class Coordinator:
         self._comparison_window.add_files(files_to_compare)
 
     def update_button_states(self):
-        can_plot = self._file_list.file_listbox.currentRow() >= 0 and len(self.plotted_files) < 4
+        can_plot = self.active_file is not None and len(self.plotted_files) < 4
         can_remove = self._plotted_file_list.file_listbox.currentRow() >= 0
         
         if self._plot_controls:
@@ -182,13 +230,14 @@ class Coordinator:
 
     def clear_plot(self):
         self.plotted_files = []
+        self.active_file = None
         self.refresh_file_lists()
         if self._plot:
             self._plot.plot([])
         clear_temp_files()
-        if self._file_info_pane:
-            self._file_info_pane.add_file_info([])
-        update_status_bar("Plot cleared.")
+        if self._single_scan_pane:
+            self._single_scan_pane.update_data({})
+        update_status_bar("Cleared.")
 
     def plot_file(self):
         if len(self.plotted_files) == 4:
@@ -223,8 +272,6 @@ class Coordinator:
             self.plotted_files.append(file_obj)
             if self._plot:
                 self._plot.plot(self.plotted_files)
-            if self._file_info_pane:
-                self._file_info_pane.add_file_info(self.plotted_files)
             self.refresh_file_lists()
 
     def remove_from_plot(self):
@@ -236,8 +283,6 @@ class Coordinator:
                     break
             if self._plot:
                 self._plot.plot(self.plotted_files)
-            if self._file_info_pane:
-                self._file_info_pane.add_file_info(self.plotted_files)
             self.refresh_file_lists()
 
     def refresh_file_lists(self):

@@ -37,7 +37,7 @@ from .gui import (
     Plot,
     AppMenu,
     DiagnosticWindow,
-    FileInfoPane
+    SingleScanPane
 )
 from .gui.style.constants import COLOR_BG, COLOR_TEXT
 from .gui.style.styles import MENU_STYLE, TITLE_LABEL_STYLE, add_label
@@ -83,67 +83,54 @@ class EmittanceViewer(QMainWindow):
         self.setCentralWidget(self.central_widget)
         self.main_layout = QVBoxLayout(self.central_widget)
 
-        self.splitter = QSplitter(Qt.Orientation.Horizontal)
-        self.main_layout.addWidget(self.splitter)
+        # Upper Area: Plot and Data
+        self.upper_splitter = QSplitter(Qt.Orientation.Horizontal)
+        self.main_layout.addWidget(self.upper_splitter, stretch=2)
 
-        # Plot area
-        logger.info("Creating Plot component")
         self.plot = Plot()
-        self.splitter.addWidget(self.plot)
+        self.upper_splitter.addWidget(self.plot)
 
-        # Control pane (scrollable)
-        logger.info("Creating control pane")
-        self.scroll_area = QScrollArea()
-        self.scroll_area.setWidgetResizable(True)
-        self.control_pane = QWidget()
-        self.control_layout = QVBoxLayout(self.control_pane)
-        self.scroll_area.setWidget(self.control_pane)
-        self.splitter.addWidget(self.scroll_area)
+        self.single_scan_pane = SingleScanPane()
+        self.single_scan_scroll = QScrollArea()
+        self.single_scan_scroll.setWidgetResizable(True)
+        self.single_scan_scroll.setWidget(self.single_scan_pane)
+        self.upper_splitter.addWidget(self.single_scan_scroll)
+        
+        self.upper_splitter.setStretchFactor(0, 3)
+        self.upper_splitter.setStretchFactor(1, 1)
 
-        # Set initial splitter sizes
-        if self.configuration.sash_position is not None:
-            self.splitter.setSizes([self.configuration.sash_position, self.width() - self.configuration.sash_position])
-        else:
-            self.splitter.setStretchFactor(0, 3)
-            self.splitter.setStretchFactor(1, 1)
-
-        # Components in control pane
-        logger.info("Creating StatusPane")
-        self.status_pane = StatusPane()
-        self.control_layout.addWidget(self.status_pane)
+        # Lower Area: Lists and Controls
+        self.lower_container = QWidget()
+        self.lower_layout = QHBoxLayout(self.lower_container)
+        self.main_layout.addWidget(self.lower_container, stretch=1)
 
         # File lists
-        logger.info("Creating file list container")
-        self.file_list_container = QWidget()
-        self.file_list_grid = QHBoxLayout(self.file_list_container)
-        
         self.available_files_layout = QVBoxLayout()
-        add_label(self.available_files_layout, "Available Files", TITLE_LABEL_STYLE).setAlignment(Qt.AlignmentFlag.AlignCenter)
+        add_label(self.available_files_layout, "Available Scans", TITLE_LABEL_STYLE).setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.file_list = FileList()
         self.available_files_layout.addWidget(self.file_list)
-        self.file_list_grid.addLayout(self.available_files_layout)
+        self.lower_layout.addLayout(self.available_files_layout, stretch=1)
 
-        self.plotted_files_layout = QVBoxLayout()
-        add_label(self.plotted_files_layout, "Plotted Files", TITLE_LABEL_STYLE).setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.comparison_files_layout = QVBoxLayout()
+        add_label(self.comparison_files_layout, "Comparison List", TITLE_LABEL_STYLE).setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.plotted_file_list = FileList()
-        self.plotted_files_layout.addWidget(self.plotted_file_list)
-        self.file_list_grid.addLayout(self.plotted_files_layout)
+        self.comparison_files_layout.addWidget(self.plotted_file_list)
+        self.lower_layout.addLayout(self.comparison_files_layout, stretch=1)
 
-        self.control_layout.addWidget(self.file_list_container)
+        # Controls column
+        self.controls_column = QVBoxLayout()
+        
+        self.status_pane = StatusPane()
+        self.controls_column.addWidget(self.status_pane)
 
-        logger.info("Creating PlotControls")
         self.plot_controls = PlotControls()
-        self.control_layout.addWidget(self.plot_controls)
+        self.controls_column.addWidget(self.plot_controls)
 
-        logger.info("Creating Tools")
         self.tools = Tools()
-        self.control_layout.addWidget(self.tools)
-
-        logger.info("Creating FileInfoPane")
-        self.file_info_pane = FileInfoPane()
-        self.control_layout.addWidget(self.file_info_pane)
-
-        self.control_layout.addStretch()
+        self.controls_column.addWidget(self.tools)
+        
+        self.controls_column.addStretch()
+        self.lower_layout.addLayout(self.controls_column)
 
         # Coordinator
         logger.info("Initializing Coordinator")
@@ -153,8 +140,8 @@ class EmittanceViewer(QMainWindow):
                 self.plot_controls,
                 self.plot,
                 self.tools,
-                self.file_info_pane,
-                self.status_pane
+                self.status_pane,
+                self.single_scan_pane
             ],
             self.configuration.default_directory,
         )

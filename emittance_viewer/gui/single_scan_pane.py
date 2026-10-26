@@ -1,0 +1,160 @@
+from PyQt6.QtWidgets import (
+    QWidget, QVBoxLayout, QGridLayout, QLabel, QHBoxLayout, QFrame, 
+    QCheckBox, QSlider, QDoubleSpinBox, QGroupBox
+)
+from PyQt6.QtCore import Qt, pyqtSignal
+from emittance_viewer.gui.style.constants import (
+    COLOR_ACTION, COLOR_BG, COLOR_GRID, FONT_MONO, FONT_SANS, COLOR_TEXT
+)
+from emittance_viewer.gui.style.styles import TITLE_LABEL_STYLE, LABEL_STYLE
+
+class DataField(QWidget):
+    def __init__(self, label, value="N/A", unit="", parent=None):
+        super().__init__(parent)
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        self.lbl_name = QLabel(f"{label}:")
+        self.lbl_name.setStyleSheet(f"font-family: {FONT_SANS}; font-size: 11px;")
+        layout.addWidget(self.lbl_name)
+        
+        self.lbl_value = QLabel(value)
+        self.lbl_value.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.lbl_value.setStyleSheet(f"font-family: {FONT_MONO}; font-weight: bold; color: {COLOR_TEXT};")
+        layout.addWidget(self.lbl_value)
+        
+        if unit:
+            self.lbl_unit = QLabel(unit)
+            self.lbl_unit.setStyleSheet(f"font-family: {FONT_SANS}; font-size: 10px; color: {COLOR_TEXT};")
+            layout.addWidget(self.lbl_unit)
+        else:
+            layout.addStretch()
+
+    def set_value(self, value):
+        self.lbl_value.setText(str(value))
+
+class SingleScanPane(QWidget):
+    fittingChanged = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.layout = QVBoxLayout(self)
+        
+        # --- Beam Data ---
+        self.beam_group = QGroupBox("Beam Data")
+        self.beam_layout = QVBoxLayout(self.beam_group)
+        self.field_beamline = DataField("Beamline")
+        self.field_extraction_v = DataField("Extraction V", unit="kV")
+        self.field_total_current = DataField("Total Current", unit="nA")
+        self.field_utilization = DataField("Utilization")
+        self.beam_layout.addWidget(self.field_beamline)
+        self.beam_layout.addWidget(self.field_extraction_v)
+        self.beam_layout.addWidget(self.field_total_current)
+        self.beam_layout.addWidget(self.field_utilization)
+        self.layout.addWidget(self.beam_group)
+
+        # --- Emittance Data ---
+        self.emittance_group = QGroupBox("Emittance Data")
+        self.emittance_layout = QVBoxLayout(self.emittance_group)
+        self.field_rms_emit = DataField("RMS Emittance", unit="mm-mrad")
+        self.field_norm_emit = DataField("Norm. Emittance", unit="mm-mrad")
+        self.field_alpha = DataField("Alpha")
+        self.field_beta = DataField("Beta", unit="mm/mrad")
+        self.field_gamma = DataField("Gamma", unit="mrad/mm")
+        self.field_x_centroid = DataField("x Centroid", unit="mm")
+        self.field_xp_centroid = DataField("x' Centroid", unit="mrad")
+        
+        self.emittance_layout.addWidget(self.field_rms_emit)
+        self.emittance_layout.addWidget(self.field_norm_emit)
+        self.emittance_layout.addWidget(self.field_alpha)
+        self.emittance_layout.addWidget(self.field_beta)
+        self.emittance_layout.addWidget(self.field_gamma)
+        self.emittance_layout.addWidget(self.field_x_centroid)
+        self.emittance_layout.addWidget(self.field_xp_centroid)
+        self.layout.addWidget(self.emittance_group)
+
+        # --- Fitting Controls ---
+        self.fitting_group = QGroupBox("Fitting Controls")
+        self.fitting_layout = QVBoxLayout(self.fitting_group)
+
+        # Sigma Clip
+        self.sigma_clip_enable = QCheckBox("Sigma Clip")
+        self.sigma_clip_enable.setChecked(True)
+        self.sigma_clip_enable.stateChanged.connect(self.fittingChanged.emit)
+        self.fitting_layout.addWidget(self.sigma_clip_enable)
+
+        sigma_layout = QHBoxLayout()
+        sigma_layout.addWidget(QLabel("Alpha:"))
+        self.sigma_alpha_spin = QDoubleSpinBox()
+        self.sigma_alpha_spin.setRange(0.1, 10.0)
+        self.sigma_alpha_spin.setSingleStep(0.1)
+        self.sigma_alpha_spin.setValue(3.0)
+        self.sigma_alpha_spin.valueChanged.connect(self.fittingChanged.emit)
+        sigma_layout.addWidget(self.sigma_alpha_spin)
+        self.fitting_layout.addLayout(sigma_layout)
+
+        # Offset
+        self.offset_enable = QCheckBox("Background Offset")
+        self.offset_enable.setChecked(True)
+        self.offset_enable.stateChanged.connect(self.fittingChanged.emit)
+        self.fitting_layout.addWidget(self.offset_enable)
+
+        offset_layout = QHBoxLayout()
+        offset_layout.addWidget(QLabel("Value:"))
+        self.offset_value_spin = QDoubleSpinBox()
+        self.offset_value_spin.setRange(-100.0, 100.0)
+        self.offset_value_spin.setSingleStep(0.1)
+        self.offset_value_spin.setValue(0.0)
+        self.offset_value_spin.valueChanged.connect(self.fittingChanged.emit)
+        offset_layout.addWidget(self.offset_value_spin)
+        self.fitting_layout.addLayout(offset_layout)
+
+        self.layout.addWidget(self.fitting_group)
+        self.layout.addStretch()
+
+        # Styling
+        self.setStyleSheet(f"""
+            QGroupBox {{ 
+                font-family: {FONT_SANS}; 
+                color: {COLOR_TEXT}; 
+                font-weight: bold;
+                border: 1px solid {COLOR_GRID}; 
+                margin-top: 1.2ex; 
+                padding-top: 10px;
+            }}
+            QGroupBox::title {{ 
+                subcontrol-origin: margin; 
+                left: 8px; 
+                padding: 0 3px; 
+            }}
+            QLabel {{ font-family: {FONT_SANS}; color: {COLOR_TEXT}; }}
+        """)
+
+    def update_data(self, data):
+        """Update fields with a dictionary of values"""
+        if "beamline" in data: self.field_beamline.set_value(data["beamline"])
+        if "extraction_v" in data: self.field_extraction_v.set_value(f"{data['extraction_v']:.2f}")
+        if "total_current" in data: self.field_total_current.set_value(f"{data['total_current']:.2e}")
+        if "utilization" in data:
+            util = data["utilization"]
+            self.field_utilization.set_value(f"{util:.0f}%")
+            if util < 10:
+                self.field_utilization.lbl_value.setStyleSheet(f"font-family: {FONT_MONO}; font-weight: bold; color: {COLOR_ACTION};")
+            else:
+                self.field_utilization.lbl_value.setStyleSheet(f"font-family: {FONT_MONO}; font-weight: bold; color: {COLOR_TEXT};")
+        
+        if "rms_emit" in data: self.field_rms_emit.set_value(f"{data['rms_emit']:.4f}")
+        if "norm_emit" in data: self.field_norm_emit.set_value(f"{data['norm_emit']:.4f}")
+        if "alpha" in data: self.field_alpha.set_value(f"{data['alpha']:.4f}")
+        if "beta" in data: self.field_beta.set_value(f"{data['beta']:.4f}")
+        if "gamma" in data: self.field_gamma.set_value(f"{data['gamma']:.4f}")
+        if "x_centroid" in data: self.field_x_centroid.set_value(f"{data['x_centroid']:.4f}")
+        if "xp_centroid" in data: self.field_xp_centroid.set_value(f"{data['xp_centroid']:.4f}")
+
+    def get_fitting_params(self):
+        return {
+            "sigma_clip": self.sigma_clip_enable.isChecked(),
+            "sigma_alpha": self.sigma_alpha_spin.value(),
+            "offset": self.offset_enable.isChecked(),
+            "offset_value": self.offset_value_spin.value()
+        }

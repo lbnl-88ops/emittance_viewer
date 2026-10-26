@@ -37,11 +37,11 @@ class Plot(QWidget):
             self.canvas.deleteLater()
             self.canvas = None
 
-    def plot(self, files: List[EmittanceScanFile]):
+    def plot(self, files: List[EmittanceScanFile], **kwargs):
         self.clear_plot()
         self.create_widgets(len(files))
         for ax, file in zip(self._axs, files):
-            plot_file(ax, file)
+            plot_file(ax, file, **kwargs)
 
 class Figure(FigureCanvas):
     def __init__(self, fig):
