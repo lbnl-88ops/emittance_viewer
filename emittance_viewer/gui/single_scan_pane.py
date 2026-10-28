@@ -125,11 +125,37 @@ class SingleScanPane(QWidget):
             QLabel {{ font-family: {FONT_SANS}; color: {COLOR_TEXT}; }}
         """)
 
+    def _set_field(self, field, value: float | str | None, format: str | None = None):
+        value_to_set = "---"
+        match value:
+            case float():
+                value_to_set = f"{value:{format}}"
+            case str():
+                value_to_set = value
+        field.set_value(value_to_set)
+
+
     def update_data(self, data):
         """Update fields with a dictionary of values"""
-        if "beamline" in data: self.field_beamline.set_value(data["beamline"])
-        if "extraction_v" in data: self.field_extraction_v.set_value(f"{data['extraction_v']:.2f}")
-        if "total_current" in data: self.field_total_current.set_value(f"{data['total_current']:.2e}")
+        data_to_update = {
+            self.field_beamline: ["beamline", None],
+            self.field_extraction_v: ["extraction_v", ".2f"],
+            self.field_total_current: ["total_current", ".2e"],
+            self.field_rms_emit: ['rms_emit', ".4f"],
+            self.field_norm_emit: ['norm_emit', ".4f"],
+            self.field_alpha: ['alpha', ".4f"],
+        	self.field_beta: ['beta', ".4f"],
+        	self.field_gamma: ['gamma', ".4f"],
+        	self.field_x_centroid: ['x_centroid', ".4f"],
+        	self.field_xp_centroid: ['xp_centroid', ".4f"],
+        }
+
+        for field, key in data_to_update.items():
+            self._set_field(field, data[key[0]], key[1])
+
+        # if "beamline" in data: self.field_beamline.set_value(data["beamline"])
+        # if "extraction_v" in data: self.field_extraction_v.set_value(f"{data['extraction_v']:.2f}")
+        # if "total_current" in data: self.field_total_current.set_value(f"{data['total_current']:.2e}")
         if "utilization" in data:
             util = data["utilization"]
             self.field_utilization.set_value(f"{util:.0f}%")
@@ -138,13 +164,13 @@ class SingleScanPane(QWidget):
             else:
                 self.field_utilization.lbl_value.setStyleSheet(f"font-family: {FONT_MONO}; font-weight: bold; color: {COLOR_TEXT};")
         
-        if "rms_emit" in data: self.field_rms_emit.set_value(f"{data['rms_emit']:.4f}")
-        if "norm_emit" in data: self.field_norm_emit.set_value(f"{data['norm_emit']:.4f}")
-        if "alpha" in data: self.field_alpha.set_value(f"{data['alpha']:.4f}")
-        if "beta" in data: self.field_beta.set_value(f"{data['beta']:.4f}")
-        if "gamma" in data: self.field_gamma.set_value(f"{data['gamma']:.4f}")
-        if "x_centroid" in data: self.field_x_centroid.set_value(f"{data['x_centroid']:.4f}")
-        if "xp_centroid" in data: self.field_xp_centroid.set_value(f"{data['xp_centroid']:.4f}")
+        # if "rms_emit" in data: self.field_rms_emit.set_value(f"{data['rms_emit']:.4f}")
+        # if "norm_emit" in data: self.field_norm_emit.set_value(f"{data['norm_emit']:.4f}")
+        # if "alpha" in data: self.field_alpha.set_value(f"{data['alpha']:.4f}")
+        # if "beta" in data: self.field_beta.set_value(f"{data['beta']:.4f}")
+        # if "gamma" in data: self.field_gamma.set_value(f"{data['gamma']:.4f}")
+        # if "x_centroid" in data: self.field_x_centroid.set_value(f"{data['x_centroid']:.4f}")
+        # if "xp_centroid" in data: self.field_xp_centroid.set_value(f"{data['xp_centroid']:.4f}")
 
         if "calc_offset" in data:
             self.lbl_offset_value.setText(f"{data['calc_offset']:.2e}")

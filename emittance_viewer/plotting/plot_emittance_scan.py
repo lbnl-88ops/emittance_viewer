@@ -20,7 +20,7 @@ def calculate_extended_data(file: EmittanceScanFile, offset: bool = True, sigma_
     # Extraction Voltage and Beamline
     extra = emittance_scan.extra_metadata
     assert extra is not None
-    ext_v = extra.get("extraction_v", 0.0)
+    ext_v = extra.get("extraction_v", None)
     
     axis = emittance_scan.scan_parameters.axis
     if axis in [Axis.AcerX, Axis.AcerY]:
@@ -42,13 +42,13 @@ def calculate_extended_data(file: EmittanceScanFile, offset: bool = True, sigma_
         rms = calculate_rms_emittance(emittance_scan, sigma_clip=sigma_clip, sigma_alpha=sigma_alpha, offset=offset)
         
         # Normalized emittance calculation
-        m_over_q = extra.get("m_over_q", 1.0)
-        if ext_v > 0 and m_over_q > 0:
+        m_over_q = extra.get("m_over_q", None)
+        if ext_v is not None and m_over_q is not None and ext_v > 0 and m_over_q > 0:
             # Constant: m_u * c^2 / e is approx 931.5 MeV
             beta = np.sqrt(2 * ext_v * 1e3 / (m_over_q * 931.5e6))
             norm_emit = beta * rms.e_rms
         else:
-            norm_emit = 0.0
+            norm_emit = None
 
         # Total Current: sum of corrected data * multiplier -> nA
         current_multiplier = 10 ** mult if mult is not None else 1.0
@@ -59,7 +59,7 @@ def calculate_extended_data(file: EmittanceScanFile, offset: bool = True, sigma_
             "extraction_v": ext_v,
             "total_current": total_current_nA,
             "rms_emit": rms.e_rms * 1e6, # mm-mrad
-            "norm_emit": norm_emit * 1e6,
+            "norm_emit": norm_emit * 1e6 if norm_emit is not None else norm_emit,
             "alpha": rms.alpha,
             "beta": rms.beta, # mm/mrad
             "gamma": rms.gamma, # mrad/mm
