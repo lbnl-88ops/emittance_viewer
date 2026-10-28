@@ -11,31 +11,15 @@ from ops.ecris.analysis.emittance_scan.rms_emittance import (
     calculate_rms_emittance,
 )
 
-def calculate_extended_data(file: EmittanceScanFile, offset: bool = True, sigma_clip: bool = True, sigma_alpha: float = 3.0, offset_value: float = 0.0):
+def calculate_extended_data(file: EmittanceScanFile, offset: bool = True, sigma_clip: bool = True, sigma_alpha: int = 2):
     """Calculate all the extra metadata requested for the SingleScanPane"""
     emittance_scan = file.emittance_scan
     if emittance_scan is None:
-        return {}
-
-    data = emittance_scan.data.copy()
-    
-    # Apply background offset
-    if offset:
-        data = data - offset_value
-    
-    # Apply sigma clipping
-    # Stub: This logic should ideally match ops-ecris-analysis
-    if sigma_clip:
-        # Simple sigma clipping: zero out anything below sigma_alpha * std
-        # (Using mean and std of the (potentially offset) data)
-        threshold = np.mean(data) + sigma_alpha * np.std(data)
-        # However, for emittance scans, we often just want to keep peaks.
-        # Let's assume the library will handle the sophisticated version.
-        # For now, we'll just zero out values below the threshold.
-        data[data < threshold] = 0
+        return {}, None
 
     # Extraction Voltage and Beamline
     extra = emittance_scan.extra_metadata
+    assert extra is not None
     ext_v = extra.get("extraction_v", 0.0)
     
     axis = emittance_scan.scan_parameters.axis
@@ -49,20 +33,13 @@ def calculate_extended_data(file: EmittanceScanFile, offset: bool = True, sigma_
     # Max current and Utilization (from old FileInfoPane)
     max_current = np.max(emittance_scan.data)
     mult = extra.get("emittance_keithley_multiplier")
-    
-    # Total Current calculation (Sum of all data points after corrections)
     if mult is not None:
-        # Assuming max_current * 10**mult is in Amps, and total_current is similar.
-        # Convert to nA for display consistency.
-        total_current_val = np.sum(data) * (10 ** mult) * 1e9
         utilization = 100 * (max_current * (10 ** mult)) / 10
     else:
-        total_current_val = np.sum(data)
         utilization = 0.0
 
     try:
-        # Stub: calculate_rms_emittance should eventually take the fitting params
-        rms = calculate_rms_emittance(emittance_scan)
+        rms = calculate_rms_emittance(emittance_scan, sigma_clip=sigma_clip, sigma_alpha=sigma_alpha, offset=offset)
         
         # Normalized emittance calculation
         m_over_q = extra.get("m_over_q", 1.0)
@@ -73,24 +50,28 @@ def calculate_extended_data(file: EmittanceScanFile, offset: bool = True, sigma_
         else:
             norm_emit = 0.0
 
-        return {
+        # Total Current: sum of corrected data * multiplier -> nA
+        current_multiplier = 10 ** mult if mult is not None else 1.0
+        total_current_nA = np.sum(rms.data) * current_multiplier * 1e9
+
+        data_dict = {
             "beamline": beamline,
             "extraction_v": ext_v,
-            "total_current": total_current_val,
-            "rms_emit": rms.e_rms,
-            "norm_emit": norm_emit,
+            "total_current": total_current_nA,
+            "rms_emit": rms.e_rms * 1e6, # mm-mrad
+            "norm_emit": norm_emit * 1e6,
             "alpha": rms.alpha,
-            "beta": rms.beta,
-            "gamma": rms.gamma,
-            "x_centroid": rms.x_mean,
-            "xp_centroid": rms.xp_mean,
+            "beta": rms.beta, # mm/mrad
+            "gamma": rms.gamma, # mrad/mm
+            "x_centroid": rms.x_mean * 1e3, # mm
+            "xp_centroid": rms.xp_mean * 1e3, # mrad
             "utilization": utilization,
-            "max_current": max_current,
-            "gain": 10**(mult if mult is not None else 0)
+            "calc_offset": np.min(emittance_scan.data)
         }
+        return data_dict, rms
     except Exception as e:
         error(f"Error calculating extended data: {e}")
-        return {}
+        return {}, None
 
 def create_figure(n_subplots: int = 0):
     match n_subplots:
@@ -113,7 +94,7 @@ def create_figure(n_subplots: int = 0):
     return fig, axs
 
 
-def plot_file(ax, file: EmittanceScanFile, offset: bool = True, sigma_clip: bool = True, sigma_alpha: float = 3.0, offset_value: float = 0.0):
+def plot_file(ax, file: EmittanceScanFile, rms_emittance: RMSEmittance | None = None):
     emittance_scan = file.emittance_scan
 
     if emittance_scan is None:
@@ -121,9 +102,9 @@ def plot_file(ax, file: EmittanceScanFile, offset: bool = True, sigma_clip: bool
         return None
 
     try:
-        plot_emittance(ax, emittance_scan, offset=offset, sigma_clip=sigma_clip)
-    except RuntimeError:
-        plot_emittance(ax, emittance_scan, offset=offset, sigma_clip = False)
+        plot_emittance(ax, emittance_scan, rms_emittance=rms_emittance)
+    except Exception as e:
+        error(f"Error plotting file: {e}")
 
     match emittance_scan.scan_parameters.axis:
         case Axis.AcerX | Axis.AcerY:

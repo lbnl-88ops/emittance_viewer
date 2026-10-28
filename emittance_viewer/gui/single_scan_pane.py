@@ -1,7 +1,8 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QGridLayout, QLabel, QHBoxLayout, QFrame, 
-    QCheckBox, QSlider, QDoubleSpinBox, QGroupBox
+    QCheckBox, QSlider, QSpinBox, QDoubleSpinBox, QGroupBox
 )
+
 from PyQt6.QtCore import Qt, pyqtSignal
 from emittance_viewer.gui.style.constants import (
     COLOR_ACTION, COLOR_BG, COLOR_GRID, FONT_MONO, FONT_SANS, COLOR_TEXT
@@ -23,12 +24,9 @@ class DataField(QWidget):
         self.lbl_value.setStyleSheet(f"font-family: {FONT_MONO}; font-weight: bold; color: {COLOR_TEXT};")
         layout.addWidget(self.lbl_value)
         
-        if unit:
-            self.lbl_unit = QLabel(unit)
-            self.lbl_unit.setStyleSheet(f"font-family: {FONT_SANS}; font-size: 10px; color: {COLOR_TEXT};")
-            layout.addWidget(self.lbl_unit)
-        else:
-            layout.addStretch()
+        self.lbl_unit = QLabel(unit)
+        self.lbl_unit.setStyleSheet(f"font-family: {FONT_SANS}; font-size: 10px; color: {COLOR_TEXT};")
+        layout.addWidget(self.lbl_unit)
 
     def set_value(self, value):
         self.lbl_value.setText(str(value))
@@ -46,7 +44,7 @@ class SingleScanPane(QWidget):
         self.field_beamline = DataField("Beamline")
         self.field_extraction_v = DataField("Extraction V", unit="kV")
         self.field_total_current = DataField("Total Current", unit="nA")
-        self.field_utilization = DataField("Utilization")
+        self.field_utilization = DataField("Utilization", unit="%")
         self.beam_layout.addWidget(self.field_beamline)
         self.beam_layout.addWidget(self.field_extraction_v)
         self.beam_layout.addWidget(self.field_total_current)
@@ -56,7 +54,7 @@ class SingleScanPane(QWidget):
         # --- Emittance Data ---
         self.emittance_group = QGroupBox("Emittance Data")
         self.emittance_layout = QVBoxLayout(self.emittance_group)
-        self.field_rms_emit = DataField("RMS Emittance", unit="mm-mrad")
+        self.field_rms_emit = DataField("4xRMS Emittance", unit="mm-mrad")
         self.field_norm_emit = DataField("Norm. Emittance", unit="mm-mrad")
         self.field_alpha = DataField("Alpha")
         self.field_beta = DataField("Beta", unit="mm/mrad")
@@ -74,7 +72,7 @@ class SingleScanPane(QWidget):
         self.layout.addWidget(self.emittance_group)
 
         # --- Fitting Controls ---
-        self.fitting_group = QGroupBox("Fitting Controls")
+        self.fitting_group = QGroupBox("Background subtraction")
         self.fitting_layout = QVBoxLayout(self.fitting_group)
 
         # Sigma Clip
@@ -85,10 +83,9 @@ class SingleScanPane(QWidget):
 
         sigma_layout = QHBoxLayout()
         sigma_layout.addWidget(QLabel("Alpha:"))
-        self.sigma_alpha_spin = QDoubleSpinBox()
-        self.sigma_alpha_spin.setRange(0.1, 10.0)
-        self.sigma_alpha_spin.setSingleStep(0.1)
-        self.sigma_alpha_spin.setValue(3.0)
+        self.sigma_alpha_spin = QSpinBox()
+        self.sigma_alpha_spin.setRange(1, 10)
+        self.sigma_alpha_spin.setValue(2)
         self.sigma_alpha_spin.valueChanged.connect(self.fittingChanged.emit)
         sigma_layout.addWidget(self.sigma_alpha_spin)
         self.fitting_layout.addLayout(sigma_layout)
@@ -100,16 +97,14 @@ class SingleScanPane(QWidget):
         self.fitting_layout.addWidget(self.offset_enable)
 
         offset_layout = QHBoxLayout()
-        offset_layout.addWidget(QLabel("Value:"))
-        self.offset_value_spin = QDoubleSpinBox()
-        self.offset_value_spin.setRange(-100.0, 100.0)
-        self.offset_value_spin.setSingleStep(0.1)
-        self.offset_value_spin.setValue(0.0)
-        self.offset_value_spin.valueChanged.connect(self.fittingChanged.emit)
-        offset_layout.addWidget(self.offset_value_spin)
+        offset_layout.addWidget(QLabel("Calc Value:"))
+        self.lbl_offset_value = QLabel("0.00")
+        self.lbl_offset_value.setStyleSheet(f"font-family: {FONT_MONO}; color: {COLOR_TEXT};")
+        offset_layout.addWidget(self.lbl_offset_value)
         self.fitting_layout.addLayout(offset_layout)
 
         self.layout.addWidget(self.fitting_group)
+
         self.layout.addStretch()
 
         # Styling
@@ -151,10 +146,13 @@ class SingleScanPane(QWidget):
         if "x_centroid" in data: self.field_x_centroid.set_value(f"{data['x_centroid']:.4f}")
         if "xp_centroid" in data: self.field_xp_centroid.set_value(f"{data['xp_centroid']:.4f}")
 
+        if "calc_offset" in data:
+            self.lbl_offset_value.setText(f"{data['calc_offset']:.2e}")
+
     def get_fitting_params(self):
         return {
             "sigma_clip": self.sigma_clip_enable.isChecked(),
             "sigma_alpha": self.sigma_alpha_spin.value(),
             "offset": self.offset_enable.isChecked(),
-            "offset_value": self.offset_value_spin.value()
         }
+

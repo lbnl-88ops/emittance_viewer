@@ -132,13 +132,14 @@ class Coordinator:
             if self._single_scan_pane:
                 fitting_params = self._single_scan_pane.get_fitting_params()
             
-            if self._plot:
-                self._plot.plot([self.active_file], **fitting_params)
-            
+            rms_emittance = None
             if self._single_scan_pane:
                 from emittance_viewer.plotting.plot_emittance_scan import calculate_extended_data
-                data = calculate_extended_data(self.active_file, **fitting_params)
+                data, rms_emittance = calculate_extended_data(self.active_file, **fitting_params)
                 self._single_scan_pane.update_data(data)
+            
+            if self._plot:
+                self._plot.plot([self.active_file], rms_emittance=rms_emittance)
         
         self.update_button_states()
 
