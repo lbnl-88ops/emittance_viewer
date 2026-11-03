@@ -89,8 +89,6 @@ class Coordinator:
     def _configure_objects(self) -> None:
         if self._file_list:
             self._file_list.selectionChanged.connect(self.update_active_scan)
-        if self._plotted_file_list:
-            self._plotted_file_list.selectionChanged.connect(self.update_button_states)
             
         if self._status_pane:
             self._status_pane.file_list_controls.btRefresh.clicked.connect(self.refresh_file_lists)
@@ -136,7 +134,8 @@ class Coordinator:
             if self._single_scan_pane:
                 from emittance_viewer.plotting.plot_emittance_scan import calculate_extended_data
                 data, rms_emittance = calculate_extended_data(self.active_file, **fitting_params)
-                self._single_scan_pane.update_data(data)
+                self._single_scan_pane.update_data(data, rms_emittance,
+                                                   self.active_file)
             
             if self._plot:
                 self._plot.plot([self.active_file], rms_emittance=rms_emittance)
@@ -145,13 +144,15 @@ class Coordinator:
 
     def plot_active_file(self):
         """Adds the active file to the plotted_files list for comparison"""
-        if self.active_file and self.active_file not in self.plotted_files:
-            if len(self.plotted_files) >= 4:
-                 QMessageBox.warning(self._root_window, "Warning", "Max 4 files for comparison.")
-                 return
-            self.plotted_files.append(self.active_file)
-            self.refresh_file_lists()
-            update_status_bar(f"Added {self.active_file.filename} to comparison.")
+        if self.active_file:
+            is_already_added = any(f.path == self.active_file.path for f in self.plotted_files)
+            if not is_already_added:
+                if len(self.plotted_files) >= 4:
+                     QMessageBox.warning(self._root_window, "Warning", "Max 4 files for comparison.")
+                     return
+                self.plotted_files.append(self.active_file)
+                self.update_button_states()
+                update_status_bar(f"Added {self.active_file.filename} to comparison.")
 
     def open_comparison_window(self):
         if hasattr(self, "_comparison_window") and self._comparison_window.isVisible():
@@ -169,11 +170,20 @@ class Coordinator:
         self._comparison_window.add_files(files_to_compare)
 
     def update_button_states(self):
-        can_plot = self.active_file is not None and len(self.plotted_files) < 4
-        can_remove = self._plotted_file_list.file_listbox.currentRow() >= 0
+        is_already_added = False
+        if self.active_file:
+            is_already_added = any(f.path == self.active_file.path for f in self.plotted_files)
+
+        can_plot = self.active_file is not None and len(self.plotted_files) < 4 and not is_already_added
+        can_remove = is_already_added
         
         if self._plot_controls:
             self._plot_controls.activate_buttons(can_plot, can_remove)
+            
+        if self._tools:
+            count = len(self.plotted_files)
+            self._tools.btOpenComparisonWindow.setText(f"Compare plotted files ({count})")
+            self._tools.btOpenComparisonWindow.setEnabled(count > 0)
 
     def update_connection_status(self) -> None:
         if not self._status_pane:
@@ -237,7 +247,7 @@ class Coordinator:
             self._plot.plot([])
         clear_temp_files()
         if self._single_scan_pane:
-            self._single_scan_pane.update_data({})
+            self._single_scan_pane.update_data({}, None, None)
         update_status_bar("Cleared.")
 
     def plot_file(self):
@@ -276,15 +286,13 @@ class Coordinator:
             self.refresh_file_lists()
 
     def remove_from_plot(self):
-        file_path = self._plotted_file_list.get_selected_file()
-        if file_path is not None:
+        if self.active_file:
             for plotted_file in self.plotted_files:
-                if plotted_file.path == file_path:
+                if plotted_file.path == self.active_file.path:
                     self.plotted_files.remove(plotted_file)
+                    update_status_bar(f"Removed {self.active_file.filename} from comparison.")
                     break
-            if self._plot:
-                self._plot.plot(self.plotted_files)
-            self.refresh_file_lists()
+            self.update_button_states()
 
     def refresh_file_lists(self):
         _log.info(f"refresh_file_lists started, mode={self.mode}")
@@ -313,20 +321,12 @@ class Coordinator:
                     self._status_pane.file_list_controls.btChangeDirectory.setEnabled(True)
         
         self._files_available = len(found_files)
-        _log.info("Sorting and filtering files")
-        files = [
-            f for f in reversed(sorted(found_files)) if f not in self.plotted_filepaths
-        ]
+        _log.info("Sorting files")
+        files = list(reversed(sorted(found_files)))
         
         if self._file_list:
             _log.info("Filling file listbox")
             self._file_list.fill_list_box(files)
-        if self._plotted_file_list:
-            _log.info("Filling plotted file listbox")
-            self._plotted_file_list.fill_list_box(self.plotted_filepaths)
-            
-        if self._tools:
-            self._tools.btOpenComparisonWindow.setEnabled(bool(self.plotted_filepaths))
             
         self.update_connection_status()
         self.update_button_states()

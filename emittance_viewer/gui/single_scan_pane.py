@@ -1,13 +1,16 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QGridLayout, QLabel, QHBoxLayout, QFrame, 
-    QCheckBox, QSlider, QSpinBox, QDoubleSpinBox, QGroupBox
+    QCheckBox, QSlider, QSpinBox, QDoubleSpinBox, QGroupBox, QSizePolicy
 )
 
 from PyQt6.QtCore import Qt, pyqtSignal
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
 from emittance_viewer.gui.style.constants import (
     COLOR_ACTION, COLOR_BG, COLOR_GRID, FONT_MONO, FONT_SANS, COLOR_TEXT
 )
 from emittance_viewer.gui.style.styles import TITLE_LABEL_STYLE, LABEL_STYLE
+from emittance_viewer.plotting.emittance_by_cutoff import plot_emittance_by_cutoff
 
 class DataField(QWidget):
     def __init__(self, label, value="N/A", unit="", parent=None):
@@ -103,6 +106,19 @@ class SingleScanPane(QWidget):
         offset_layout.addWidget(self.lbl_offset_value)
         self.fitting_layout.addLayout(offset_layout)
 
+        # Mini Plot for custom analysis/visualization
+        self.mini_figure = Figure(figsize=(3, 2), dpi=100)
+        self.mini_figure.patch.set_facecolor(COLOR_BG)
+        self.mini_canvas = FigureCanvas(self.mini_figure)
+        self.mini_canvas.setMinimumHeight(150)
+        self.mini_ax = self.mini_figure.add_subplot(111)
+        self.mini_ax.set_facecolor(COLOR_BG)
+        self.mini_ax.tick_params(colors=COLOR_TEXT, labelsize=8)
+        for spine in self.mini_ax.spines.values():
+            spine.set_edgecolor(COLOR_GRID)
+        
+        self.fitting_layout.addWidget(self.mini_canvas)
+
         self.layout.addWidget(self.fitting_group)
 
         self.layout.addStretch()
@@ -139,7 +155,7 @@ class SingleScanPane(QWidget):
         field.set_value(value_to_set)
 
 
-    def update_data(self, data):
+    def update_data(self, data, rms_emittance, emittance_file):
         """Update fields with a dictionary of values"""
         data_to_update = {
             self.field_beamline: ["beamline", None],
@@ -168,6 +184,15 @@ class SingleScanPane(QWidget):
         
         if "calc_offset" in data:
             self.lbl_offset_value.setText(f"{data['calc_offset']:.2e}")
+            
+        # Clear mini plot or show something simple
+        self.mini_ax.clear()
+        plot_emittance_by_cutoff(self.mini_ax, emittance_file, rms_emittance,
+                                 self.sigma_alpha_spin.value())
+        self.mini_ax.set_title("Background subtraction", color=COLOR_TEXT, fontsize=10)
+        # self.mini_ax.text(0.5, 0.5, "Ready for Science", ha='center', va='center', 
+        #                  color=COLOR_GRID, transform=self.mini_ax.transAxes)
+        self.mini_canvas.draw()
 
     def get_fitting_params(self):
         return {

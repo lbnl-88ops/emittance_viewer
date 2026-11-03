@@ -83,9 +83,13 @@ class EmittanceViewer(QMainWindow):
         self.setCentralWidget(self.central_widget)
         self.main_layout = QVBoxLayout(self.central_widget)
 
-        # Upper Area: Plot and Data
+        # Main Vertical Splitter (Top: Plot/Data, Bottom: Lists/Controls)
+        self.main_v_splitter = QSplitter(Qt.Orientation.Vertical)
+        self.main_layout.addWidget(self.main_v_splitter)
+
+        # Upper Area: Plot and Data (Horizontal Splitter)
         self.upper_splitter = QSplitter(Qt.Orientation.Horizontal)
-        self.main_layout.addWidget(self.upper_splitter, stretch=3)
+        self.main_v_splitter.addWidget(self.upper_splitter)
 
         self.plot = Plot()
         self.upper_splitter.addWidget(self.plot)
@@ -96,26 +100,20 @@ class EmittanceViewer(QMainWindow):
         self.single_scan_scroll.setWidget(self.single_scan_pane)
         self.upper_splitter.addWidget(self.single_scan_scroll)
         
-        self.upper_splitter.setStretchFactor(0, 3)
-        self.upper_splitter.setStretchFactor(1, 1)
+        # Set 50/50 split for Top Area
+        self.upper_splitter.setSizes([500, 500])
 
-        # Lower Area: Lists and Controls
+        # Lower Area: Lists and Controls (Horizontal Layout)
         self.lower_container = QWidget()
         self.lower_layout = QHBoxLayout(self.lower_container)
-        self.main_layout.addWidget(self.lower_container, stretch=1)
+        self.main_v_splitter.addWidget(self.lower_container)
 
-        # File lists
+        # File list (Single Column)
         self.available_files_layout = QVBoxLayout()
-        add_label(self.available_files_layout, "Available Scans", TITLE_LABEL_STYLE).setAlignment(Qt.AlignmentFlag.AlignCenter)
+        add_label(self.available_files_layout, "Select Emittance Scan", TITLE_LABEL_STYLE).setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.file_list = FileList()
         self.available_files_layout.addWidget(self.file_list)
-        self.lower_layout.addLayout(self.available_files_layout, stretch=1)
-
-        self.comparison_files_layout = QVBoxLayout()
-        add_label(self.comparison_files_layout, "Comparison List", TITLE_LABEL_STYLE).setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.plotted_file_list = FileList()
-        self.comparison_files_layout.addWidget(self.plotted_file_list)
-        self.lower_layout.addLayout(self.comparison_files_layout, stretch=1)
+        self.lower_layout.addLayout(self.available_files_layout, stretch=4)
 
         # Controls column
         self.controls_column = QVBoxLayout()
@@ -130,7 +128,10 @@ class EmittanceViewer(QMainWindow):
         self.controls_column.addWidget(self.tools)
         
         self.controls_column.addStretch()
-        self.lower_layout.addLayout(self.controls_column)
+        self.lower_layout.addLayout(self.controls_column, stretch=1)
+
+        # Set Initial Vertical Split: Give 75% to the Upper Area, 25% to the Lower Area
+        self.main_v_splitter.setSizes([750, 250])
 
         # Coordinator
         logger.info("Initializing Coordinator")
@@ -146,7 +147,6 @@ class EmittanceViewer(QMainWindow):
             self.configuration.default_directory,
         )
         self.coordinator.attach(self.file_list, FileListType.TO_PLOT)
-        self.coordinator.attach(self.plotted_file_list, FileListType.PLOTTED)
         
         logger.info("Calling coordinator.initialize")
         self.coordinator.initialize()
@@ -172,10 +172,10 @@ class EmittanceViewer(QMainWindow):
         self.configuration.window_y = self.y()
         
         # Save splitter positions
-        sizes = self.splitter.sizes()
-        if sizes:
-            # We don't have a direct 'sash_position' in QSplitter but we can save the first size
-            self.configuration.sash_position = sizes[0]
+        if hasattr(self, "main_v_splitter"):
+            sizes = self.main_v_splitter.sizes()
+            if sizes:
+                self.configuration.sash_position = sizes[0]
 
         save_configuration(self.configuration)
         clear_temp_files()
@@ -199,6 +199,8 @@ class EmittanceViewer(QMainWindow):
 
 def emittance_viewer():
     import logging
+    import multiprocessing
+    multiprocessing.freeze_support()
     logger = logging.getLogger("ops")
     logger.info("Initializing QApplication...")
     app = QApplication(sys.argv)
