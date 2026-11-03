@@ -85,7 +85,7 @@ class EmittanceViewer(QMainWindow):
 
         # Upper Area: Plot and Data
         self.upper_splitter = QSplitter(Qt.Orientation.Horizontal)
-        self.main_layout.addWidget(self.upper_splitter, stretch=2)
+        self.main_layout.addWidget(self.upper_splitter, stretch=3)
 
         self.plot = Plot()
         self.upper_splitter.addWidget(self.plot)

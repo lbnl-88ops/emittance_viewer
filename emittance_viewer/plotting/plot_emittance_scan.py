@@ -36,7 +36,7 @@ def calculate_extended_data(file: EmittanceScanFile, offset: bool = True, sigma_
     if mult is not None:
         utilization = 100 * (max_current * (10 ** mult)) / 10
     else:
-        utilization = 0.0
+        utilization = None
 
     try:
         rms = calculate_rms_emittance(emittance_scan, sigma_clip=sigma_clip, sigma_alpha=sigma_alpha, offset=offset)
@@ -51,13 +51,17 @@ def calculate_extended_data(file: EmittanceScanFile, offset: bool = True, sigma_
             norm_emit = None
 
         # Total Current: sum of corrected data * multiplier -> nA
-        current_multiplier = 10 ** mult if mult is not None else 1.0
-        total_current_nA = np.sum(rms.data) * current_multiplier * 1e9
+        # current_multiplier = 10 ** mult if mult is not None else 1.0
+        total_current_micro_A = np.sum(rms.data) * 1e6
+        print(np.sum(emittance_scan.data))
+        print(np.sum(rms.data))
+        print(mult)
+        # print(current_multiplier)
 
         data_dict = {
             "beamline": beamline,
             "extraction_v": ext_v,
-            "total_current": total_current_nA,
+            "total_current": total_current_micro_A,
             "rms_emit": rms.e_rms * 1e6, # mm-mrad
             "norm_emit": norm_emit * 1e6 if norm_emit is not None else norm_emit,
             "alpha": rms.alpha,
