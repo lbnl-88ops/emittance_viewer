@@ -113,7 +113,7 @@ class EmittanceViewer(QMainWindow):
         add_label(self.available_files_layout, "Select Emittance Scan", TITLE_LABEL_STYLE).setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.file_list = FileList()
         self.available_files_layout.addWidget(self.file_list)
-        self.lower_layout.addLayout(self.available_files_layout, stretch=4)
+        self.lower_layout.addLayout(self.available_files_layout, stretch=1)
 
         # Controls column
         self.controls_column = QVBoxLayout()
